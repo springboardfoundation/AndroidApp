@@ -8,4 +8,15 @@
 
 
     <string name="action_done">Done</string>
+    <string name="drawer_open">Open</string>
+    <string name="drawer_close">Close</string>
+
+    <string name="StartText">Please confirm your country code and enter your phone number.</string>
+    <string name="verfication_desc_text">Please enter the received code</string>
+    <string name="mobile_verification_title">Mobile verification</string>
+
+
+    <string-array name="left_menu_titles">
+        <item>About</item>
+    </string-array>
 </resources>

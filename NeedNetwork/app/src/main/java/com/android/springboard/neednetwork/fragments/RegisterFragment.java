@@ -44,11 +44,7 @@ public class RegisterFragment extends Fragment implements View.OnClickListener{
 
     private User createUser() {
         User user = new User();
-        user.setUsername("kgbhilhblhb");
-        user.setFirstName("Mohammkukbied");
-        user.setLastName("kbib.kl");
-        user.setEmailAddress("mohammed31.shoeb@gmail.com");
-        user.setPassword("password");
+        user.setUsername("9538987275");
         user.setMobileNumber("9538987275");
 
         return user;

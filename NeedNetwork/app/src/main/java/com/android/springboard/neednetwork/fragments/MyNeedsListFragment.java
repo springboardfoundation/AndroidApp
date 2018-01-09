@@ -11,8 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.android.springboard.neednetwork.R;
-import com.android.springboard.neednetwork.adapters.NeedsFragmentAdapter;
-import com.android.springboard.neednetwork.dummy.DummyContent;
 import com.android.springboard.neednetwork.listeners.OnListFragmentInteractionListener;
 
 /**
@@ -69,7 +67,7 @@ public class MyNeedsListFragment extends Fragment {
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            recyclerView.setAdapter(new NeedsFragmentAdapter(DummyContent.ITEMS, mListener));
+            //recyclerView.setAdapter(new NeedsFragmentAdapter(DummyContent.ITEMS, mListener));
         }
         return view;
     }

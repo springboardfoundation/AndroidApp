@@ -4,7 +4,7 @@ package com.android.springboard.neednetwork.listeners;
  * Created by Shouib on 7/9/2017.
  */
 
-import com.android.springboard.neednetwork.dummy.DummyContent;
+import com.android.springboard.neednetwork.models.Need;
 
 /**
  * This interface must be implemented by activities that contain this
@@ -18,5 +18,5 @@ import com.android.springboard.neednetwork.dummy.DummyContent;
  */
 public interface OnListFragmentInteractionListener {
     // TODO: Update argument type and name
-    void onListFragmentInteraction(DummyContent.DummyItem item);
+    void onListFragmentInteraction(Need item);
 }

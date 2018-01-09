@@ -37,7 +37,7 @@ public class NeedActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
         switch (item.getItemId()) {
-            case R.id.add_need:
+            case R.id.done:
                 mNeedFragment.addNeed();
                 return true;
             default:

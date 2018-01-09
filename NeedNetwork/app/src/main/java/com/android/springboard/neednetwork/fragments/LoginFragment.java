@@ -1,31 +1,49 @@
 package com.android.springboard.neednetwork.fragments;
 
 
-import android.content.Intent;
+import android.app.Fragment;
+import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import android.support.annotation.Nullable;
+import android.telephony.TelephonyManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import com.android.springboard.neednetwork.R;
-import com.android.springboard.neednetwork.activities.NeedTabsActivity;
-import com.android.springboard.neednetwork.activities.RegisterActivity;
+import com.android.springboard.neednetwork.activities.PhoneVerificationActivity;
+import com.android.springboard.neednetwork.application.ApplicationLoader;
+import com.android.springboard.neednetwork.constants.ActivityConstants;
 import com.android.springboard.neednetwork.utils.ActivityUtil;
+import com.hbb20.CountryCodePicker;
+import com.mobsandgeeks.saripaar.ValidationError;
+import com.mobsandgeeks.saripaar.Validator;
+import com.mobsandgeeks.saripaar.annotation.NotEmpty;
+
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class LoginFragment extends Fragment implements View.OnClickListener{
+public class LoginFragment extends Fragment implements View.OnClickListener, Validator.ValidationListener {
 
-    private EditText mUserNameEt;
-    private EditText mPasswordEt;
+    private CountryCodePicker mCountryCodePicker;
+    @NotEmpty
+    private EditText mMobileNumberEt;
+
+    private Validator mValidator;
 
     public LoginFragment() {
         // Required empty public constructor
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        mValidator = new Validator(this);
+        mValidator.setValidationListener(this);
     }
 
 
@@ -39,37 +57,50 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
     }
 
     private void initViews(View view) {
-        Button loginButton = (Button) view.findViewById(R.id.login_btn);
-        loginButton.setOnClickListener(this);
+        mCountryCodePicker = (CountryCodePicker) view.findViewById(R.id.country_name_picker);
+        setDefaultCountryCode();
 
-        TextView registerTextView = (TextView) view.findViewById(R.id.register_tv);
-        registerTextView.setOnClickListener(this);
+        mMobileNumberEt = (EditText) view.findViewById(R.id.mobile_number_et);
+        mCountryCodePicker.registerCarrierNumberEditText(mMobileNumberEt);
+    }
 
-        mUserNameEt = (EditText) view.findViewById(R.id.username_et);
-        mPasswordEt = (EditText) view.findViewById(R.id.password_et);
+    private void setDefaultCountryCode() {
+        String country = null;
+
+        try {
+            TelephonyManager telephonyManager = (TelephonyManager) ApplicationLoader.applicationContext.getSystemService(Context.TELEPHONY_SERVICE);
+            if (telephonyManager != null) {
+                country = telephonyManager.getSimCountryIso().toUpperCase();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (country != null) {
+            mCountryCodePicker.setDefaultCountryUsingNameCode(country);
+            mCountryCodePicker.isValidFullNumber();
+        }
     }
 
     @Override
     public void onClick(View v) {
         int id = v.getId();
 
-        if(id == R.id.login_btn) {
-            handleLoginClick();
-        } else if(id == R.id.register_tv) {
-            handleRegisterTvClick();
-        }
+
     }
 
-    private void handleRegisterTvClick() {
-        Intent intent = new Intent();
-        intent.setClass(getActivity(), RegisterActivity.class);
-        startActivity(intent);
+    public void handleOk() {
+        mValidator.validate();
     }
 
-    private void handleLoginClick() {
-        String username = mUserNameEt.getText().toString();
-        String password = mPasswordEt.getText().toString();
+    @Override
+    public void onValidationSucceeded() {
+        ActivityUtil.startActivity(getActivity(), PhoneVerificationActivity.class, ActivityConstants.INTENT_EXTRA_MOBILE_NUMBER,
+                mCountryCodePicker.getFullNumber());
+    }
 
-        ActivityUtil.startActivity(getActivity(), NeedTabsActivity.class);
+    @Override
+    public void onValidationFailed(List<ValidationError> errors) {
+        ActivityUtil.handleEditTextValidationError(getActivity(), errors);
     }
 }

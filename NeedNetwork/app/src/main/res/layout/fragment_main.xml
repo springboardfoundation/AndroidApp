@@ -2,47 +2,30 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.android.springboard.neednetwork.fragments.LoginFragment">
 
-    <LinearLayout
+    <com.hbb20.CountryCodePicker
+        android:id="@+id/country_name_picker"
+        android:layout_width="wrap_content"
+        android:layout_margin="20dp"
+        app:ccp_showFullName="true"
+        android:layout_height="wrap_content" />
+
+    <EditText
+        android:layout_below="@id/country_name_picker"
+        android:id="@+id/mobile_number_et"
         android:layout_width="match_parent"
-        android:layout_centerInParent="true"
-        android:orientation="vertical"
-        android:layout_height="wrap_content">
+        android:layout_margin="20dp"
+        android:inputType="number"
+        android:layout_height="wrap_content"
+        />
 
-        <EditText
-            android:id="@+id/username_et"
-            android:hint="Email"
-            android:layout_width="match_parent"
-            android:layout_margin="20dp"
-            android:layout_height="wrap_content" />
-
-        <EditText
-            android:id="@+id/password_et"
-            android:hint="Password"
-            android:inputType="textPassword"
-            android:layout_width="match_parent"
-            android:layout_margin="20dp"
-            android:layout_height="wrap_content" />
-
-        <Button
-            android:id="@+id/login_btn"
-            android:text="Login"
-            android:layout_gravity="center_horizontal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/register_tv"
-            android:linksClickable="true"
-            android:layout_width="wrap_content"
-            android:text="@string/register_text"
-            android:layout_gravity="center_horizontal"
-            android:layout_margin="@dimen/fragement_login_register_margin_top"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
-
-
-
+    <TextView
+        android:layout_below="@id/mobile_number_et"
+        android:layout_width="match_parent"
+        android:layout_margin="20dp"
+        android:text="@string/StartText"
+        android:layout_height="wrap_content" />
 
 </RelativeLayout>

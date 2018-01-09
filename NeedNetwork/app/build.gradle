@@ -25,12 +25,15 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile group: 'com.google.code.gson', name: 'gson', version: '2.3.1'
+    compile group: 'com.mobsandgeeks', name: 'android-saripaar', version: '2.0.0'
+    compile project(':library')
     compile 'com.android.support:appcompat-v7:25.2.0'
     compile 'com.android.support:design:25.2.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.android.support:support-v4:25.2.0'
     compile 'com.android.volley:volley:1.0.0'
     compile 'com.android.support:recyclerview-v7:25.2.0'
-    compile group: 'com.mobsandgeeks', name: 'android-saripaar', version: '2.0.0'
+    compile 'gun0912.ted:tedpermission:1.0.3'
+    compile 'com.hbb20:ccp:2.0.3'
     testCompile 'junit:junit:4.12'
 }

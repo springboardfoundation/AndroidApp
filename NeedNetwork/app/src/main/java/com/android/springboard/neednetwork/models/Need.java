@@ -1,5 +1,8 @@
 package com.android.springboard.neednetwork.models;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Shouib on 7/9/2017.
  */
@@ -14,6 +17,8 @@ public class Need {
     private String id;
 
     private String description;
+
+    private List<String> mConnectionsList = new ArrayList<>();
 
     public String getId() {
         return id;
