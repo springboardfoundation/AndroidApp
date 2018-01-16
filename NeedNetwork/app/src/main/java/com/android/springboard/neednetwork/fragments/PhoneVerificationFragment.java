@@ -12,17 +12,19 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 
 import com.android.springboard.neednetwork.R;
+import com.android.springboard.neednetwork.activities.NeedTabsActivity;
 import com.android.springboard.neednetwork.constants.ActivityConstants;
 import com.android.springboard.neednetwork.managers.NeedManager;
 import com.android.springboard.neednetwork.models.User;
 import com.android.springboard.neednetwork.utils.ActivityUtil;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
 import com.mobsandgeeks.saripaar.ValidationError;
 import com.mobsandgeeks.saripaar.Validator;
 import com.mobsandgeeks.saripaar.annotation.NotEmpty;
 
-import org.json.JSONObject;
+import org.json.JSONArray;
 
 import java.util.List;
 
@@ -72,18 +74,20 @@ public class PhoneVerificationFragment extends Fragment implements Validator.Val
 
     @Override
     public void onValidationSucceeded() {
-        //ActivityUtil.startActivity(getActivity(), NeedTabsActivity.class);
+        ActivityUtil.startActivity(getActivity(), NeedTabsActivity.class);
         User user = new User();
         user.setMobileNumber("12345");
-        mNeedManager.login(user, new Response.Listener<JSONObject>() {
+        Log.i("shoeb", "test before making rest call" );
+        mNeedManager.login(user, new Response.Listener<JSONArray>() {
             @Override
-            public void onResponse(JSONObject response) {
+            public void onResponse(JSONArray response) {
                 Log.i("shoeb", response.toString());
-
             }
+
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                VolleyLog.e("Error: ", error.getMessage());
                 Log.i("shoeb", error.toString());
             }
         });
