@@ -24,8 +24,10 @@ import com.onegravity.contactpicker.Helper;
 import com.onegravity.contactpicker.contact.Contact;
 import com.onegravity.contactpicker.contact.ContactSortOrder;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -65,7 +67,7 @@ public class ContactImpl extends ContactElementImpl implements Contact {
             0xff607D8B
     };
 
-    static ContactImpl fromCursor(Cursor cursor) {
+    public static ContactImpl fromCursor(Cursor cursor) {
         long id = cursor.getLong(cursor.getColumnIndex(ContactsContract.Contacts._ID));
         String lookupKey = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY));
         String displayName = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY));
@@ -137,6 +139,20 @@ public class ContactImpl extends ContactElementImpl implements Contact {
     }
 
     @Override
+    public List<String> getPhone() {
+        List<String> phones = new ArrayList<>();
+        for(Integer key : mPhone.keySet()) {
+            String phone = mPhone.get(key);
+
+            if(phone != null && !phone.isEmpty()) {
+                phones.add(phone);
+            }
+        }
+
+        return phones;
+    }
+
+    @Override
     public char getContactLetter() {
         if (mContactLetterBadge == 0) {
             Matcher m = CONTACT_LETTER.matcher(getDisplayName());
@@ -195,23 +211,23 @@ public class ContactImpl extends ContactElementImpl implements Contact {
         return mGroupIds;
     }
 
-    protected void setFirstName(String value) {
+    public void setFirstName(String value) {
         mFirstName = value;
     }
 
-    protected void setLastName(String value) {
+    public void setLastName(String value) {
         mLastName = value;
     }
 
-    protected void setEmail(int type, String value) {
+    public void setEmail(int type, String value) {
         mEmail.put(type, value);
     }
 
-    protected void setPhone(int type, String value) {
+    public void setPhone(int type, String value) {
         mPhone.put(type, value);
     }
 
-    protected void setAddress(int type, String value) {
+    public void setAddress(int type, String value) {
         mAddress.put(type, value);
     }
 
@@ -219,13 +235,7 @@ public class ContactImpl extends ContactElementImpl implements Contact {
         mPhotoUri = photoUri != null ? photoUri.toString() : null;
     }
 
-    void addGroupId(long value) {
+    public void addGroupId(long value) {
         mGroupIds.add(value);
     }
-
-    @Override
-    public String toString() {
-        return super.toString() + ", " + mFirstName + " " + mLastName + ", " + mEmail;
-    }
-
 }

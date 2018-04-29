@@ -14,21 +14,28 @@
  * limitations under the License.
  */
 
-package com.onegravity.contactpicker.core;
+package com.android.springboard.neednetwork.activities;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.ContactsContract;
 import android.support.v4.app.LoaderManager;
+import android.support.v4.content.ContentResolverCompat;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.os.CancellationSignal;
+import android.support.v4.os.OperationCanceledException;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -37,6 +44,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.android.springboard.neednetwork.managers.UserManager;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.onegravity.contactpicker.OnContactCheckedListener;
 import com.onegravity.contactpicker.R;
 import com.onegravity.contactpicker.contact.Contact;
@@ -44,6 +54,9 @@ import com.onegravity.contactpicker.contact.ContactDescription;
 import com.onegravity.contactpicker.contact.ContactSelectionChanged;
 import com.onegravity.contactpicker.contact.ContactSortOrder;
 import com.onegravity.contactpicker.contact.ContactsLoaded;
+import com.onegravity.contactpicker.core.ContactImpl;
+import com.onegravity.contactpicker.core.GroupImpl;
+import com.onegravity.contactpicker.core.PagerAdapter;
 import com.onegravity.contactpicker.group.Group;
 import com.onegravity.contactpicker.group.GroupsLoaded;
 import com.onegravity.contactpicker.picture.ContactPictureType;
@@ -51,9 +64,11 @@ import com.onegravity.contactpicker.picture.ContactPictureType;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONArray;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -62,11 +77,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 import static android.provider.ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS;
 
 public class ContactPickerActivity extends AppCompatActivity implements
-        LoaderManager.LoaderCallbacks<Cursor> {
+        LoaderManager.LoaderCallbacks {
 
     /**
      * Use this parameter to set the Theme for this activity.
@@ -81,14 +98,14 @@ public class ContactPickerActivity extends AppCompatActivity implements
      * Use this parameter to determine whether the contact picture shows a contact badge and if yes
      * what type (round, square).
      * <p>
-     * {@link com.onegravity.contactpicker.picture.ContactPictureType}
+     * {@link ContactPictureType}
      */
     public static final String EXTRA_CONTACT_BADGE_TYPE = "EXTRA_CONTACT_BADGE_TYPE";
 
     /**
      * Use this to define what contact information is used for the description field (second line).
      * <p>
-     * {@link com.onegravity.contactpicker.contact.ContactDescription}
+     * {@link ContactDescription}
      */
     public static final String EXTRA_CONTACT_DESCRIPTION = "EXTRA_CONTACT_DESCRIPTION";
 
@@ -155,7 +172,7 @@ public class ContactPickerActivity extends AppCompatActivity implements
     /**
      * Use this to define the sorting order for contacts
      * <p>
-     * {@link com.onegravity.contactpicker.contact.ContactSortOrder}
+     * {@link ContactSortOrder}
      */
     public static final String EXTRA_CONTACT_SORT_ORDER = "EXTRA_CONTACT_SORT_ORDER";
 
@@ -210,8 +227,7 @@ public class ContactPickerActivity extends AppCompatActivity implements
     private static final String CONTACT_IDS = "CONTACT_IDS";
     private HashSet<Long> mSelectedContactIds = new HashSet<>();
 
-    private static final String REGISTERED_CONTACT_IDS = "REGISTERED_CONTACT_IDS";
-    private HashSet<Long> mRegisteredContactIds = new HashSet<>();
+    //private HashSet<Long> mRegisteredContactIds = new HashSet<>();
 
     private static final String GROUP_IDS = "GROUP_IDS";
     private HashSet<Long> mSelectedGroupIds = new HashSet<>();
@@ -219,7 +235,6 @@ public class ContactPickerActivity extends AppCompatActivity implements
     private String mLimitReachedMessage;
     private int mSelectContactsLimit = 0;
     private Boolean mOnlyWithPhoneNumbers = false;
-
     // ****************************************** Lifecycle Methods *******************************************
 
     @Override
@@ -273,7 +288,6 @@ public class ContactPickerActivity extends AppCompatActivity implements
             try {
                 mSelectedContactIds = (HashSet<Long>) savedInstanceState.getSerializable(CONTACT_IDS);
                 mSelectedGroupIds = (HashSet<Long>) savedInstanceState.getSerializable(GROUP_IDS);
-                mRegisteredContactIds = (HashSet<Long>) savedInstanceState.getSerializable(REGISTERED_CONTACT_IDS);
             } catch (ClassCastException ignore) {
             }
         }
@@ -367,6 +381,11 @@ public class ContactPickerActivity extends AppCompatActivity implements
             public void onTabReselected(TabLayout.Tab tab) {
             }
         });*/
+
+        //getSupportLoaderManager().initLoader(GROUPS_LOADER_ID, null, this);
+        //getSupportLoaderManager().initLoader(CONTACTS_LOADER_ID, null, this);
+        RegisteredContactsTask registeredContactsTask = new RegisteredContactsTask();
+        registeredContactsTask.execute();
     }
 
     @Override
@@ -374,9 +393,6 @@ public class ContactPickerActivity extends AppCompatActivity implements
         super.onResume();
 
         EventBus.getDefault().register(this);
-
-        getSupportLoaderManager().initLoader(CONTACTS_LOADER_ID, null, this);
-        getSupportLoaderManager().initLoader(GROUPS_LOADER_ID, null, this);
     }
 
     @Override
@@ -411,15 +427,6 @@ public class ContactPickerActivity extends AppCompatActivity implements
             }
         }
         outState.putSerializable(GROUP_IDS, mSelectedGroupIds);
-
-        mRegisteredContactIds.clear();
-        ;
-        for (Contact contact : mContacts) {
-            if (contact.isRegistered()) {
-                mRegisteredContactIds.add(contact.getId());
-            }
-        }
-        outState.putSerializable(REGISTERED_CONTACT_IDS, mRegisteredContactIds);
     }
 
     private void updateTitle() {
@@ -452,6 +459,9 @@ public class ContactPickerActivity extends AppCompatActivity implements
             return true;
         } else if (id == R.id.action_done) {
             onDone();
+            return true;
+        } else if (id == R.id.action_refresh) {
+            getSupportLoaderManager().initLoader(CONTACTS_LOADER_ID, null, this);
             return true;
         }
 
@@ -532,7 +542,8 @@ public class ContactPickerActivity extends AppCompatActivity implements
     private static final String GROUPS_SORT = ContactsContract.Groups.TITLE + " COLLATE LOCALIZED ASC";
 
     @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+    public Loader onCreateLoader(int id, Bundle args) {
+        Log.i("shoeb", "onCreateLoader");
         String selection = "";
         if (mOnlyWithPhoneNumbers) {
             selection = ContactsContract.Contacts.HAS_PHONE_NUMBER;
@@ -551,29 +562,157 @@ public class ContactPickerActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
+    public void onLoaderReset(Loader loader) {
+        Log.i("shoeb", "onLoaderReset");
         ContactsLoaded.post(null);
         GroupsLoaded.post(null);
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+    public void onLoadFinished(Loader loader, Object data) {
+        Log.i("shoeb", "onLoadFinished = " + loader.getId());
         switch (loader.getId()) {
             case CONTACTS_LOADER_ID:
-                readContacts(cursor);
+                readContacts((Cursor) data);
                 // contacts loaded --> load the contact details
                 getSupportLoaderManager().initLoader(CONTACT_DETAILS_LOADER_ID, null, this);
                 break;
 
             case CONTACT_DETAILS_LOADER_ID:
-                readContactDetails(cursor);
+                readContactDetails((Cursor) data);
                 break;
 
             case GROUPS_LOADER_ID: {
-                readGroups(cursor);
+                readGroups((Cursor) data);
                 break;
             }
         }
+    }
+
+
+    public class RegisteredContactsTask extends AsyncTask<Void, Void, List<Object>> {
+
+        final class ForceLoadContentObserver extends ContentObserver {
+            public ForceLoadContentObserver() {
+                super(new Handler());
+            }
+
+            @Override
+            public boolean deliverSelfNotifications() {
+                return true;
+            }
+
+            @Override
+            public void onChange(boolean selfChange) {
+            }
+        }
+
+        final ForceLoadContentObserver mObserver;
+        private ProgressDialog mProgressDialog;
+
+        CancellationSignal mCancellationSignal;
+        private List<String> mPhoneNumbersList;
+        private UserManager mUserManager;
+
+        public RegisteredContactsTask() {
+            mCancellationSignal = new CancellationSignal();
+            mObserver = new ForceLoadContentObserver();
+            mPhoneNumbersList = new ArrayList<>();
+            mUserManager = new UserManager(ContactPickerActivity.this);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            mProgressDialog = ProgressDialog.show(ContactPickerActivity.this,
+                    "", "Loading....", true, false);
+        }
+
+        @Override
+        protected List<Object> doInBackground(Void... params) {
+            String selection = "";
+            if (mOnlyWithPhoneNumbers) {
+                selection = ContactsContract.Contacts.HAS_PHONE_NUMBER;
+            }
+
+            Cursor contactsCursor = loadCursor(CONTACTS_URI, CONTACTS_PROJECTION,
+                    selection, null, CONTACTS_SORT);
+            Map<String, ContactImpl> contactsMap = getContacts(contactsCursor);
+            Cursor contactDetailsCursor = loadCursor(CONTACT_DETAILS_URI, CONTACT_DETAILS_PROJECTION,
+                    selection, null, null);
+            readContactDetails(contactDetailsCursor, contactsMap);
+
+            Collection<ContactImpl> contacts = contactsMap.values();
+            for(ContactImpl contact : contacts) {
+                for(String number : contact.getPhone()) {
+                    if(!isPhoneNumberExist(number, mPhoneNumbersList)) {
+                        mPhoneNumbersList.add(number);
+                    }
+                }
+            }
+
+            try {
+                JSONArray response = mUserManager.fetchRegisteredUsers(mPhoneNumbersList);
+                Gson gson = new Gson();
+                Type listType = new TypeToken<List<String>>() {}.getType();
+                List<String> registeredUsersList = gson.fromJson(response.toString(), listType);
+                readContacts(registeredUsersList, contacts);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (TimeoutException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(List<Object> result) {
+            mProgressDialog.dismiss();
+            updateTitle();
+            sortAndPostCopy(mContacts);
+            joinContactsAndGroups(mContacts);
+        }
+
+        private Cursor loadCursor(Uri uri, String[] projection, String selection,
+                                  String[] selectionArgs, String sortOrder) {
+            synchronized (this) {
+                if (isCancelled()) {
+                    throw new OperationCanceledException();
+                }
+                mCancellationSignal = new CancellationSignal();
+            }
+            try {
+                Cursor cursor = ContentResolverCompat.query(getContentResolver(),
+                        uri, projection, selection, selectionArgs, sortOrder,
+                        mCancellationSignal);
+                if (cursor != null) {
+                    try {
+                        // Ensure the cursor window is filled.
+                        cursor.getCount();
+                        cursor.registerContentObserver(mObserver);
+                    } catch (RuntimeException ex) {
+                        cursor.close();
+                        throw ex;
+                    }
+                }
+                return cursor;
+            } finally {
+                synchronized (this) {
+                    mCancellationSignal = null;
+                }
+            }
+        }
+    }
+
+    private boolean isPhoneNumberExist(String number, List<String> phoneNumbersList) {
+        for(String phone : phoneNumbersList) {
+            if(number.equals(phone)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // ****************************************** Contact Methods *******************************************
@@ -609,6 +748,46 @@ public class ContactPickerActivity extends AppCompatActivity implements
         }
     };
 
+    private Map<String, ContactImpl> getContacts(Cursor cursor) {
+        Map<String, ContactImpl> contactsByLookupKey = new HashMap<>();
+        if (cursor.moveToFirst()) {
+            cursor.moveToPrevious();
+            while (cursor.moveToNext()) {
+                ContactImpl contact = ContactImpl.fromCursor(cursor);
+                contactsByLookupKey.put(contact.getLookupKey(), contact);
+            }
+        }
+
+        return contactsByLookupKey;
+    }
+
+    private void readContacts(List<String> registeredUsersList, Collection<ContactImpl> contactsList) {
+        mContacts.clear();
+        mContactsByLookupKey.clear();
+        mNrOfSelectedContacts = 0;
+
+
+        for (String registeredNumber : registeredUsersList) {
+            for (ContactImpl contact : contactsList) {
+                for (String number : contact.getPhone()) {
+                    mContacts.add(contact);
+
+                    mContactsByLookupKey.put(contact.getLookupKey(), contact);
+
+                    boolean isChecked = mSelectedContactIds.contains(contact.getId());
+                    contact.setChecked(isChecked, true);
+                    mNrOfSelectedContacts += isChecked ? 1 : 0;
+
+                    contact.addOnContactCheckedListener(mContactListener);
+                    if(number.equals(registeredNumber)) {
+                        contact.setRegistered(true);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     private void readContacts(Cursor cursor) {
         mContacts.clear();
         mContactsByLookupKey.clear();
@@ -619,11 +798,6 @@ public class ContactPickerActivity extends AppCompatActivity implements
             cursor.moveToPrevious();
             while (cursor.moveToNext()) {
                 ContactImpl contact = ContactImpl.fromCursor(cursor);
-                boolean isRegistered = mRegisteredContactIds.contains(contact.getId());
-/*                if(!isRegistered) {
-                    continue;
-                }*/
-                contact.setRegistered(isRegistered);
                 mContacts.add(contact);
 
                 // LOOKUP_KEY is the one we use to retrieve the contact when the contact details are loaded
@@ -637,18 +811,18 @@ public class ContactPickerActivity extends AppCompatActivity implements
                 contact.addOnContactCheckedListener(mContactListener);
 
                 // update the ui once some contacts have loaded
-                if (++count >= BATCH_SIZE) {
+/*                if (++count >= BATCH_SIZE) {
                     sortAndPostCopy(mContacts);
                     count = 0;
-                }
+                }*/
             }
         }
 
-        if (count > 0) {
+/*        if (count > 0) {
             sortAndPostCopy(mContacts);
-        }
+        }*/
 
-        updateTitle();
+        //updateTitle();
     }
 
     /**
@@ -663,21 +837,56 @@ public class ContactPickerActivity extends AppCompatActivity implements
         ContactsLoaded.post(copy);
     }
 
+/*    private void removeDuplicatesIfExist(List<ContactImpl> contacts) {
+        Set set = new TreeSet(new Comparator<ContactImpl>() {
+            @Override
+            public int compare(ContactImpl o1, ContactImpl o2) {
+                if(o1.getId().equalsIgnoreCase(o2.getId())){
+                    return 0;
+                }
+                return 1;
+            }
+        });
+        set.addAll(contacts);
+    }*/
+
+    private void readContactDetails(Cursor cursor, Map<String, ContactImpl> contactsByLookupKey) {
+        if (cursor != null && cursor.moveToFirst()) {
+            cursor.moveToPrevious();
+            try {
+                while (cursor.moveToNext()) {
+                    String lookupKey = cursor.getString(cursor.getColumnIndex(ContactsContract.Data.LOOKUP_KEY));
+                    ContactImpl contact = contactsByLookupKey.get(lookupKey);
+
+                    if (contact != null) {
+                        readContactDetails(cursor, contact);
+                    }
+                }
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private void readContactDetails(Cursor cursor) {
         if (cursor != null && cursor.moveToFirst()) {
             cursor.moveToPrevious();
-            while (cursor.moveToNext()) {
-                String lookupKey = cursor.getString(cursor.getColumnIndex(ContactsContract.Data.LOOKUP_KEY));
-                ContactImpl contact = mContactsByLookupKey.get(lookupKey);
+            try {
+                while (cursor.moveToNext()) {
+                    String lookupKey = cursor.getString(cursor.getColumnIndex(ContactsContract.Data.LOOKUP_KEY));
+                    ContactImpl contact = mContactsByLookupKey.get(lookupKey);
 
-                if (contact != null) {
-                    readContactDetails(cursor, contact);
+                    if (contact != null) {
+                        readContactDetails(cursor, contact);
+                    }
                 }
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
             }
         }
 
-        sortAndPostCopy(mContacts);
-        joinContactsAndGroups(mContacts);
+/*        sortAndPostCopy(mContacts);
+        joinContactsAndGroups(mContacts);*/
     }
 
     private void readContactDetails(Cursor cursor, ContactImpl contact) {

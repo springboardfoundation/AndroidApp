@@ -15,29 +15,29 @@ import com.android.springboard.neednetwork.R;
 import com.android.springboard.neednetwork.activities.NeedTabsActivity;
 import com.android.springboard.neednetwork.constants.ActivityConstants;
 import com.android.springboard.neednetwork.managers.NeedManager;
+import com.android.springboard.neednetwork.managers.UserManager;
 import com.android.springboard.neednetwork.models.User;
 import com.android.springboard.neednetwork.utils.ActivityUtil;
+import com.android.springboard.neednetwork.utils.SharedPrefsUtils;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
 import com.mobsandgeeks.saripaar.ValidationError;
 import com.mobsandgeeks.saripaar.Validator;
 import com.mobsandgeeks.saripaar.annotation.NotEmpty;
-
-import org.json.JSONArray;
 
 import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class PhoneVerificationFragment extends Fragment implements Validator.ValidationListener{
+public class PhoneVerificationFragment extends Fragment implements Validator.ValidationListener {
 
     @NotEmpty
     private EditText mSecurityCodeEt;
     private Validator mValidator;
     private String mMobileNumber;
     private NeedManager mNeedManager;
+    private UserManager mUserManager;
 
     public PhoneVerificationFragment() {
         // Required empty public constructor
@@ -52,6 +52,7 @@ public class PhoneVerificationFragment extends Fragment implements Validator.Val
         mValidator = new Validator(this);
         mValidator.setValidationListener(this);
         mNeedManager = new NeedManager(activity);
+        mUserManager = new UserManager(activity);
     }
 
     @Override
@@ -64,6 +65,29 @@ public class PhoneVerificationFragment extends Fragment implements Validator.Val
         return view;
     }
 
+    private void registerUser(String mobileNumber) {
+        User user = new User();
+        user.setMobileNumber(mobileNumber);
+        user.setUsername(mobileNumber);
+        mUserManager.registerUser(user, mRegisterResponseListener, mRegisterErrorListener);
+    }
+
+    private Response.Listener mRegisterResponseListener = new Response.Listener() {
+        @Override
+        public void onResponse(Object response) {
+            Log.i("shoeb", "" + response);
+            SharedPrefsUtils.setStringPreference(getActivity(), ActivityConstants.PREF_MOBILE_NUMBER, mMobileNumber);
+            ActivityUtil.startActivity(getActivity(), NeedTabsActivity.class);
+        }
+    };
+
+    private Response.ErrorListener mRegisterErrorListener = new Response.ErrorListener() {
+        @Override
+        public void onErrorResponse(VolleyError error) {
+            Log.i("shoeb", "" + error);
+        }
+    };
+
     private void initViews(View view) {
         mSecurityCodeEt = (EditText) view.findViewById(R.id.security_code_et);
     }
@@ -74,23 +98,7 @@ public class PhoneVerificationFragment extends Fragment implements Validator.Val
 
     @Override
     public void onValidationSucceeded() {
-        ActivityUtil.startActivity(getActivity(), NeedTabsActivity.class);
-        User user = new User();
-        user.setMobileNumber("12345");
-        Log.i("shoeb", "test before making rest call" );
-        mNeedManager.login(user, new Response.Listener<JSONArray>() {
-            @Override
-            public void onResponse(JSONArray response) {
-                Log.i("shoeb", response.toString());
-            }
-
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e("Error: ", error.getMessage());
-                Log.i("shoeb", error.toString());
-            }
-        });
+        registerUser(mMobileNumber);
     }
 
     @Override

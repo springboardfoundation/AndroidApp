@@ -2,20 +2,30 @@ package com.android.springboard.neednetwork.fragments;
 
 
 import android.Manifest;
+import android.app.DatePickerDialog;
 import android.app.Fragment;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.android.springboard.neednetwork.R;
+import com.android.springboard.neednetwork.activities.ContactPickerActivity;
+import com.android.springboard.neednetwork.managers.NeedManager;
+import com.android.springboard.neednetwork.models.Need;
 import com.android.springboard.neednetwork.utils.ActivityUtil;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
 import com.mobsandgeeks.saripaar.ValidationError;
@@ -23,16 +33,18 @@ import com.mobsandgeeks.saripaar.Validator;
 import com.mobsandgeeks.saripaar.annotation.NotEmpty;
 import com.onegravity.contactpicker.contact.ContactDescription;
 import com.onegravity.contactpicker.contact.ContactSortOrder;
-import com.onegravity.contactpicker.core.ContactPickerActivity;
 import com.onegravity.contactpicker.picture.ContactPictureType;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class NeedFragment extends Fragment implements Validator.ValidationListener, View.OnClickListener {
+public class NeedFragment extends Fragment implements Validator.ValidationListener, View.OnClickListener, View.OnFocusChangeListener {
 
     private static final int REQUEST_CONTACT = 0;
 
@@ -43,10 +55,12 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
     @NotEmpty
     private EditText mGoalEditText;
     @NotEmpty
-    private EditText mDurationEditText;
+    private EditText mTargetDateEditText;
     private EditText mLocationEditText;
 
     private Validator mValidator;
+    private DatePickerDialog mDatePickerDialog;
+    private NeedManager mNeedManager;
 
 
     public NeedFragment() {
@@ -59,6 +73,10 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
 
         mValidator = new Validator(this);
         mValidator.setValidationListener(this);
+        Calendar calendar = Calendar.getInstance();
+        mDatePickerDialog = new DatePickerDialog(getContext(), mDateSetListener,
+                calendar.get(Calendar.YEAR) , calendar.get(Calendar.MONTH) , calendar.get(Calendar.DAY_OF_MONTH));
+        mNeedManager = new NeedManager(getContext());
     }
 
     @Override
@@ -74,7 +92,10 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
         mTitleEditText = (EditText) view.findViewById(R.id.title_et);
         mDescEditText = (EditText) view.findViewById(R.id.description_et);
         mGoalEditText = (EditText) view.findViewById(R.id.goal_et);
-        mDurationEditText = (EditText) view.findViewById(R.id.duration_et);
+        mTargetDateEditText = (EditText) view.findViewById(R.id.target_date_et);
+        mTargetDateEditText.setOnClickListener(this);
+        mTargetDateEditText.setOnFocusChangeListener(this);
+        mTargetDateEditText.setKeyListener(null);
         mLocationEditText = (EditText) view.findViewById(R.id.location_et);
 
         FloatingActionButton actionConnectionsButton = (FloatingActionButton) view.findViewById(R.id.add_connections_btn);
@@ -87,8 +108,42 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
 
     @Override
     public void onValidationSucceeded() {
+        Need need = new Need();
+        need.setTitle(mTitleEditText.getText().toString());
+        need.setDescription(mDescEditText.getText().toString());
+        need.setGoal(mGoalEditText.getText().toString());
+        DatePicker datePicker = mDatePickerDialog.getDatePicker();
+        int year = datePicker.getYear();
+        int month = datePicker.getMonth();
+        int day = datePicker.getDayOfMonth();
+        final Calendar calendar = Calendar.getInstance();
+        calendar.set(year, month, day);
+        final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = new Date() {
 
+            @Override
+            public String toString() {
+                return dateFormat.format(calendar.getTime());
+            }
+        };
+        need.setTargetDate(date);
+        need.setLocation(mLocationEditText.getText().toString());
+        mNeedManager.createNeed(need, mNeedResponseListener, mNeedErrorListener);
     }
+
+    private Response.Listener mNeedResponseListener = new Response.Listener() {
+        @Override
+        public void onResponse(Object response) {
+            Log.i("shoeb", "" + response);
+        }
+    };
+
+    private Response.ErrorListener mNeedErrorListener = new Response.ErrorListener() {
+        @Override
+        public void onErrorResponse(VolleyError error) {
+            Log.i("shoeb", "" + error);
+        }
+    };
 
     @Override
     public void onValidationFailed(List<ValidationError> errors) {
@@ -106,8 +161,23 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
                     .setDeniedMessage("If you reject permission,you can not use this service\n\nPlease turn on permissions at [Setting] > [Permission]")
                     .setPermissions(Manifest.permission.READ_CONTACTS)
                     .check();
+        } else if(id == R.id.target_date_et && !mDatePickerDialog.isShowing()) {
+            mDatePickerDialog.show();
         }
     }
+
+    private DatePickerDialog.OnDateSetListener mDateSetListener = new DatePickerDialog.OnDateSetListener() {
+
+        @Override
+        public void onDateSet(DatePicker view, int year,
+                              int monthOfYear, int dayOfMonth) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(year, monthOfYear, dayOfMonth);
+            SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy");
+            String date = format.format(calendar.getTime());
+            mTargetDateEditText.setText(date);
+        }
+    };
 
     PermissionListener mPermissionlistener = new PermissionListener() {
         @Override
@@ -140,5 +210,46 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
                 .putExtra(ContactPickerActivity.EXTRA_CONTACT_SORT_ORDER,
                         ContactSortOrder.AUTOMATIC.name());
         startActivityForResult(intent, REQUEST_CONTACT);
+    }
+
+    private void getContactList() {
+        ContentResolver cr = getContext().getContentResolver();
+        Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
+                null, null, null, null);
+
+        if ((cur != null ? cur.getCount() : 0) > 0) {
+            while (cur != null && cur.moveToNext()) {
+                String id = cur.getString(
+                        cur.getColumnIndex(ContactsContract.Contacts._ID));
+                String name = cur.getString(cur.getColumnIndex(
+                        ContactsContract.Contacts.DISPLAY_NAME));
+
+                if (cur.getInt(cur.getColumnIndex(
+                        ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0) {
+                    Cursor pCur = cr.query(
+                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                            null,
+                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+                            new String[]{id}, null);
+                    while (pCur.moveToNext()) {
+                        String phoneNo = pCur.getString(pCur.getColumnIndex(
+                                ContactsContract.CommonDataKinds.Phone.NUMBER));
+                        Log.i("shoeb", "Name: " + name);
+                        Log.i("shoeb", "Phone Number: " + phoneNo);
+                    }
+                    pCur.close();
+                }
+            }
+        }
+        if (cur != null) {
+            cur.close();
+        }
+    }
+
+    @Override
+    public void onFocusChange(View v, boolean hasFocus) {
+        if(v.getId() == R.id.target_date_et && hasFocus && !mDatePickerDialog.isShowing()) {
+            mDatePickerDialog.show();
+        }
     }
 }

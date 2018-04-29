@@ -21,15 +21,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.RegisterActivity" />
+        <activity android:name=".activities.RegisterActivity"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".activities.NeedTabsActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/TabsTheme" />
         <activity
             android:name=".activities.NeedActivity"
+            android:screenOrientation="portrait"
             android:parentActivityName=".activities.NeedTabsActivity" />
         <activity
-            android:name="com.onegravity.contactpicker.core.ContactPickerActivity"
+            android:name=".activities.ContactPickerActivity"
+            android:screenOrientation="portrait"
             android:enabled="true"
             android:exported="false"
             android:parentActivityName=".activities.NeedActivity">
@@ -45,7 +49,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>-->
-        <activity android:name=".activities.PhoneVerificationActivity"></activity>
+        <activity android:name=".activities.PhoneVerificationActivity"
+            android:screenOrientation="portrait"></activity>
     </application>
 
 </manifest>

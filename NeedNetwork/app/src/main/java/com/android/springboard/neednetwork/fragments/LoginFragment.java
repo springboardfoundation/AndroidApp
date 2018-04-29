@@ -78,7 +78,6 @@ public class LoginFragment extends Fragment implements View.OnClickListener, Val
 
         if (country != null) {
             mCountryCodePicker.setDefaultCountryUsingNameCode(country);
-            mCountryCodePicker.isValidFullNumber();
         }
     }
 
@@ -90,13 +89,18 @@ public class LoginFragment extends Fragment implements View.OnClickListener, Val
     }
 
     public void handleOk() {
+        if(!mCountryCodePicker.isValidFullNumber()) {
+            mMobileNumberEt.setError("Invalid number");
+            return;
+        }
+
         mValidator.validate();
     }
 
     @Override
     public void onValidationSucceeded() {
         ActivityUtil.startActivity(getActivity(), PhoneVerificationActivity.class, ActivityConstants.INTENT_EXTRA_MOBILE_NUMBER,
-                mCountryCodePicker.getFullNumber());
+                mMobileNumberEt.getText().toString());
     }
 
     @Override

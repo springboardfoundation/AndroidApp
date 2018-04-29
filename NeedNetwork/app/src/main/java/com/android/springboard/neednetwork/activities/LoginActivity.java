@@ -10,10 +10,14 @@ import android.widget.Toast;
 
 import com.android.springboard.neednetwork.R;
 import com.android.springboard.neednetwork.fragments.LoginFragment;
+import com.android.springboard.neednetwork.utils.ActivityUtil;
+import com.android.springboard.neednetwork.utils.SharedPrefsUtils;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
 
 import java.util.ArrayList;
+
+import static com.android.springboard.neednetwork.constants.ActivityConstants.PREF_MOBILE_NUMBER;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -24,8 +28,21 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        String mobileNumber = SharedPrefsUtils.getStringPreference(this, PREF_MOBILE_NUMBER);
+        if(mobileNumber != null && !mobileNumber.isEmpty()) {
+            ActivityUtil.startActivity(this, NeedTabsActivity.class);
+            finish();
+            return;
+        }
+
         FragmentManager fragmentManager = getFragmentManager();
         mFragment = (LoginFragment) fragmentManager.findFragmentById(R.id.fragment);
+    }
+
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
     }
 
     @Override

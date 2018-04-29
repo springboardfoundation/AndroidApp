@@ -10,8 +10,13 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
     }
     buildTypes {
+        debug {
+           debuggable true
+            buildConfigField 'String', 'IP_ADDRESS', "\"${getIP()}\""
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -19,19 +24,39 @@ android {
     }
 }
 
+def getIP() {
+    println "shoeb"
+    InetAddress result = null;
+    Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+    while (interfaces.hasMoreElements()) {
+        Enumeration<InetAddress> addresses = interfaces.nextElement().getInetAddresses();
+        while (addresses.hasMoreElements()) {
+            InetAddress address = addresses.nextElement();
+            if (!address.isLoopbackAddress()) {
+                if (address.isSiteLocalAddress()) {
+                    println address.getHostAddress()
+                    return address.getHostAddress();
+                } else if (result == null) {
+                    result = address;
+                }
+            }
+        }
+    }
+    println result != null ? result : InetAddress.getLocalHost().getHostAddress()
+    return (result != null ? result : InetAddress.getLocalHost()).getHostAddress();
+}
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile group: 'com.google.code.gson', name: 'gson', version: '2.3.1'
     compile group: 'com.mobsandgeeks', name: 'android-saripaar', version: '2.0.0'
     compile project(':library')
     compile 'com.android.support:appcompat-v7:25.2.0'
     compile 'com.android.support:design:25.2.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.android.support:support-v4:25.2.0'
-    compile 'com.android.volley:volley:1.0.0'
     compile 'com.android.support:recyclerview-v7:25.2.0'
     compile 'gun0912.ted:tedpermission:1.0.3'
     compile 'com.hbb20:ccp:2.0.3'

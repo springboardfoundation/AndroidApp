@@ -37,4 +37,9 @@
         android:icon="@drawable/ic_done_white_24dp"
         android:title="@android:string/ok"/>
 
+    <item
+        android:id="@+id/action_refresh"
+        app:showAsAction="never"
+        android:title="Refresh"/>
+
 </menu>

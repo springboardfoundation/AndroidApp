@@ -29,8 +29,31 @@ android {
         debug {
             debuggable true
             minifyEnabled false
+
         }
     }
+}
+
+def getIP() {
+    println "shoeb"
+    InetAddress result = null;
+    Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+    while (interfaces.hasMoreElements()) {
+        Enumeration<InetAddress> addresses = interfaces.nextElement().getInetAddresses();
+        while (addresses.hasMoreElements()) {
+            InetAddress address = addresses.nextElement();
+            if (!address.isLoopbackAddress()) {
+                if (address.isSiteLocalAddress()) {
+                    println address.getHostAddress()
+                    return address.getHostAddress();
+                } else if (result == null) {
+                    result = address;
+                }
+            }
+        }
+    }
+    println result != null ? result : InetAddress.getLocalHost().getHostAddress()
+    return (result != null ? result : InetAddress.getLocalHost()).getHostAddress();
 }
 
 dependencies {
@@ -45,6 +68,9 @@ dependencies {
     compile "org.greenrobot:eventbus:${eventBusLibVersion}"
 
     compile "xyz.danoz:recyclerviewfastscroller:${fastScrollVersion}"
+    compile 'com.android.volley:volley:1.0.0'
+    compile group: 'com.googlecode.libphonenumber', name: 'libphonenumber', version: '5.5'
+    compile group: 'com.google.code.gson', name: 'gson', version: '2.3.1'
 }
 
 apply from: '../android-artifacts.gradle'

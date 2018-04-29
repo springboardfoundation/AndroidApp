@@ -20,6 +20,7 @@ import android.net.Uri;
 import android.provider.ContactsContract;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
@@ -37,6 +38,7 @@ public class ContactViewHolder extends RecyclerView.ViewHolder {
     private TextView mDescription;
     private ContactBadge mBadge;
     private CheckBox mSelect;
+    private Button mInvite;
 
     final private ContactPictureType mContactPictureType;
     final private ContactDescription mContactDescription;
@@ -52,6 +54,7 @@ public class ContactViewHolder extends RecyclerView.ViewHolder {
         mDescription = (TextView) root.findViewById(R.id.description);
         mBadge = (ContactBadge) root.findViewById(R.id.contact_badge);
         mSelect = (CheckBox) root.findViewById(R.id.select);
+        mInvite = (Button) root.findViewById(R.id.invite_button);
 
         mContactPictureType = contactPictureType;
         mContactDescription = contactDescription;
@@ -112,6 +115,8 @@ public class ContactViewHolder extends RecyclerView.ViewHolder {
                 contact.setChecked(isChecked, false);
             }
         });
+
+        mInvite.setVisibility(contact.isRegistered() ? View.INVISIBLE : View.VISIBLE);
     }
 
     void onRecycled() {

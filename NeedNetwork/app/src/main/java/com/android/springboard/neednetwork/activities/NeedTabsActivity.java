@@ -11,6 +11,8 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Base64;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
@@ -18,13 +20,24 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.android.springboard.neednetwork.R;
+import com.android.springboard.neednetwork.constants.ActivityConstants;
+import com.android.springboard.neednetwork.constants.Constants;
 import com.android.springboard.neednetwork.fragments.CurrentNeedsListFragment;
 import com.android.springboard.neednetwork.fragments.MyNeedsListFragment;
+import com.android.springboard.neednetwork.managers.UserManager;
+import com.android.springboard.neednetwork.models.User;
 import com.android.springboard.neednetwork.utils.ActivityUtil;
+import com.android.springboard.neednetwork.utils.SharedPrefsUtils;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.springboard.neednetwork.constants.Constants.HEADER_AUTHORIZATION;
 import static com.android.springboard.neednetwork.constants.Constants.TAB_CURRENT_NEEDS;
 import static com.android.springboard.neednetwork.constants.Constants.TAB_MY_NEEDS;
 
@@ -40,6 +53,7 @@ public class NeedTabsActivity extends AppCompatActivity implements TabLayout.OnT
     private ActionBarDrawerToggle mDrawerToggle;
     private CharSequence mDrawerTitle;
     private CharSequence mTitle;
+    private UserManager mUserManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +61,9 @@ public class NeedTabsActivity extends AppCompatActivity implements TabLayout.OnT
         setContentView(R.layout.activity_need_tabs);
 
         initViews();
+        String mobileNumber = SharedPrefsUtils.getStringPreference(this, ActivityConstants.PREF_MOBILE_NUMBER);
+        mUserManager = new UserManager(this);
+        loadNeeds(mobileNumber);
     }
 
     private void initViews() {
@@ -69,6 +86,7 @@ public class NeedTabsActivity extends AppCompatActivity implements TabLayout.OnT
 
         // Set the adapter for the list view
         mDrawerList.setAdapter(new ArrayAdapter<String>(this,
+
                 R.layout.drawer_list_item, mTitles));
         // Set the list's click listener
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
@@ -96,9 +114,36 @@ public class NeedTabsActivity extends AppCompatActivity implements TabLayout.OnT
         mDrawerToggle.setDrawerIndicatorEnabled(true);
         // Set the drawer toggle as the DrawerListener
         mDrawerLayout.addDrawerListener(mDrawerToggle);
-
-
     }
+
+    private void loadNeeds(String mobileNumber) {
+        User user = new User();
+        user.setMobileNumber(mobileNumber);
+        Log.i("shoeb", "test before making rest call" );
+        mUserManager.login(user, mLoginResponseListener, mLoginErrorListener);
+    }
+
+    private Response.Listener mLoginResponseListener = new Response.Listener<JSONObject>() {
+        @Override
+        public void onResponse(JSONObject response) {
+            Log.i("shoeb", "" + response);
+            try {
+                JSONObject headers = response.getJSONObject(Constants.RESPONSE_HEADERS);
+                String token = headers.getString(HEADER_AUTHORIZATION);
+                SharedPrefsUtils.setStringPreference(NeedTabsActivity.this, ActivityConstants.PREF_TOKEN, Base64.encodeToString(token.getBytes(),
+                        Base64.DEFAULT));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+
+    private Response.ErrorListener mLoginErrorListener = new Response.ErrorListener() {
+        @Override
+        public void onErrorResponse(VolleyError error) {
+            Log.i("shoeb", "" + error);
+        }
+    };
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {

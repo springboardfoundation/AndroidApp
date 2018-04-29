@@ -17,6 +17,9 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fragment_register_margin"
         android:maxLines="1"
+        android:nextFocusDown="@id/description"
+        android:imeOptions="actionNext"
+        android:inputType="text"
         android:hint="Title"/>
 
     <EditText
@@ -25,28 +28,37 @@
         android:layout_height="wrap_content"
         android:lines="3"
         android:gravity="top|left"
-        android:inputType="textMultiLine"
+        android:inputType="text|textMultiLine"
         android:layout_margin="@dimen/fragment_register_margin"
+        android:nextFocusDown="@+id/goal_et"
+        android:imeOptions="actionNext"
         android:hint="Description"/>
 
     <EditText
-        android:id="@+id/goal_et"
+        android:id="@id/goal_et"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fragment_register_margin"
         android:maxLines="1"
+        android:nextFocusDown="@+id/target_date_et"
+        android:imeOptions="actionNext"
+        android:inputType="text"
         android:hint="Goal"/>
 
     <EditText
-        android:id="@+id/duration_et"
+        android:id="@id/target_date_et"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fragment_register_margin"
         android:maxLines="1"
-        android:hint="Duration"/>
+        android:cursorVisible="false"
+        android:nextFocusDown="@+id/location_et"
+        android:imeOptions="actionNext"
+        android:inputType="text"
+        android:hint="Target date"/>
 
     <EditText
-        android:id="@+id/location_et"
+        android:id="@id/location_et"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fragment_register_margin"

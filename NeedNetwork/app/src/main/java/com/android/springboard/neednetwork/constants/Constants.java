@@ -1,19 +1,27 @@
 package com.android.springboard.neednetwork.constants;
 
+import com.android.springboard.neednetwork.BuildConfig;
+
 /**
  * Created by Shouib on 6/3/2017.
  */
 
 public class Constants {
 
-    public static final String HTTP_URL = "http://192.168.1.4:8080/";
+    public static final String HTTP_URL = "http://" + BuildConfig.IP_ADDRESS + ":8080/";
 
     public static final String REST_API_LOGIN_USER = HTTP_URL + "rest/login";
-    public static final String REST_API_REGISTER_USER = HTTP_URL + "rest/register/";
-
-    public static final String ACCESS_TOKEN = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxMjM0NSIsImV4cCI6MTUxMzEzNTc3MH0.71tRRGTA_o1zlC20Pg8Y553fJFzvEz5Z5EA-fyrrivi9nxR6Pf7U-lmtMdkovC6hWhYWrt28ZDLXa8vjHKslsg";
+    public static final String REST_API_REGISTER_USER = HTTP_URL + "rest/register";
+    public static final String REST_API_CREATE_NEED = HTTP_URL + "rest/%s/needs/";
+    public static final String REST_API_REGISTERED_USERS = HTTP_URL + "rest/users";
 
     //Need Tab Titles
     public static final String TAB_MY_NEEDS = "MY NEEDS";
     public static final String TAB_CURRENT_NEEDS = "CURRENT NEEDS";
+
+
+    public static final String RESPONSE_DATA = "data";
+    public static final String RESPONSE_HEADERS = "headers";
+    public static final String HEADER_AUTHORIZATION = "Authorization";
+
 }

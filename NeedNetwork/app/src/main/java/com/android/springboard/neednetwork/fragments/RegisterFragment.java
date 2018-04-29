@@ -39,7 +39,7 @@ public class RegisterFragment extends Fragment implements View.OnClickListener{
 
     public void onRegisterClick() {
         UserManager userManager = new UserManager(getContext());
-        userManager.registerUser(createUser());
+        //userManager.registerUser(createUser());
     }
 
     private User createUser() {

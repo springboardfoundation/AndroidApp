@@ -31,4 +31,6 @@
     <string name="cp_actionmode_selected">%d selected</string>
 
     <string name="cp_limit_reached">You can\'t pick more than %d contacts!</string>
+
+    <string name="text_invite">Invite</string>
 </resources>
