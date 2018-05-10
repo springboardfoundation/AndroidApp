@@ -21,6 +21,7 @@ import com.android.springboard.neednetwork.utils.ActivityUtil;
 import com.android.springboard.neednetwork.utils.SharedPrefsUtils;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.mobsandgeeks.saripaar.ValidationError;
 import com.mobsandgeeks.saripaar.Validator;
 import com.mobsandgeeks.saripaar.annotation.NotEmpty;
@@ -66,6 +67,7 @@ public class PhoneVerificationFragment extends Fragment implements Validator.Val
     }
 
     private void registerUser(String mobileNumber) {
+        String token = FirebaseInstanceId.getInstance().getToken();
         User user = new User();
         user.setMobileNumber(mobileNumber);
         user.setUsername(mobileNumber);

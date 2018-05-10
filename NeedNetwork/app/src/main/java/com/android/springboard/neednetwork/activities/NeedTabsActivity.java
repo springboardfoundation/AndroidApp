@@ -30,6 +30,7 @@ import com.android.springboard.neednetwork.utils.ActivityUtil;
 import com.android.springboard.neednetwork.utils.SharedPrefsUtils;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -64,6 +65,9 @@ public class NeedTabsActivity extends AppCompatActivity implements TabLayout.OnT
         String mobileNumber = SharedPrefsUtils.getStringPreference(this, ActivityConstants.PREF_MOBILE_NUMBER);
         mUserManager = new UserManager(this);
         loadNeeds(mobileNumber);
+
+        String token = FirebaseInstanceId.getInstance().getToken();
+        Log.i("shoeb", "token = " + token);
     }
 
     private void initViews() {

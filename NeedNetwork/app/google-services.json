@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "229465808406",
+    "firebase_url": "https://neednetwork-4215f.firebaseio.com",
+    "project_id": "neednetwork-4215f",
+    "storage_bucket": "neednetwork-4215f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:229465808406:android:38488a994a0e34b6",
+        "android_client_info": {
+          "package_name": "com.android.springboard.neednetwork"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "229465808406-fhat16faj0r0nrr7f5v9n7u04pampppl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.android.springboard.neednetwork",
+            "certificate_hash": "eb57a4aa2d3ef3174fb63f2e440f3b63f412bfa8"
+          }
+        },
+        {
+          "client_id": "229465808406-h5gjphlj4gelrs0qtu66qeih6lvkv8qj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCm-txXVOMTR1sFAGgGqgpdoq5OginPaOI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "229465808406-h5gjphlj4gelrs0qtu66qeih6lvkv8qj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

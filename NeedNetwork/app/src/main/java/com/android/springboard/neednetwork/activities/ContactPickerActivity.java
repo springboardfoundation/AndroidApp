@@ -768,10 +768,11 @@ public class ContactPickerActivity extends AppCompatActivity implements
 
 
         for (String registeredNumber : registeredUsersList) {
+            Log.i("shoeb", "1. " + registeredNumber);
             for (ContactImpl contact : contactsList) {
                 for (String number : contact.getPhone()) {
                     mContacts.add(contact);
-
+                    Log.i("shoeb", "2. " + number);
                     mContactsByLookupKey.put(contact.getLookupKey(), contact);
 
                     boolean isChecked = mSelectedContactIds.contains(contact.getId());

@@ -106,15 +106,22 @@ public class ContactViewHolder extends RecyclerView.ViewHolder {
             }
         }
 
-        // check box
-        mSelect.setOnCheckedChangeListener(null);
-        mSelect.setChecked( contact.isChecked() );
-        mSelect.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                contact.setChecked(isChecked, false);
-            }
-        });
+        if(contact.isRegistered()) {
+            // check box
+            mSelect.setVisibility(View.VISIBLE);
+            mSelect.setOnCheckedChangeListener(null);
+            mSelect.setChecked( contact.isChecked() );
+            mSelect.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    contact.setChecked(isChecked, false);
+                }
+            });
+        } else {
+            mSelect.setVisibility(View.INVISIBLE);
+        }
+
+
 
         mInvite.setVisibility(contact.isRegistered() ? View.INVISIBLE : View.VISIBLE);
     }

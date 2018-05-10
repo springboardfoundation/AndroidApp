@@ -4,9 +4,7 @@ package com.android.springboard.neednetwork.fragments;
 import android.Manifest;
 import android.app.DatePickerDialog;
 import android.app.Fragment;
-import android.content.ContentResolver;
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
@@ -31,15 +29,21 @@ import com.gun0912.tedpermission.TedPermission;
 import com.mobsandgeeks.saripaar.ValidationError;
 import com.mobsandgeeks.saripaar.Validator;
 import com.mobsandgeeks.saripaar.annotation.NotEmpty;
+import com.onegravity.contactpicker.contact.Contact;
 import com.onegravity.contactpicker.contact.ContactDescription;
 import com.onegravity.contactpicker.contact.ContactSortOrder;
 import com.onegravity.contactpicker.picture.ContactPictureType;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import static com.android.springboard.neednetwork.activities.ContactPickerActivity.RESULT_CONTACT_DATA;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -61,6 +65,7 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
     private Validator mValidator;
     private DatePickerDialog mDatePickerDialog;
     private NeedManager mNeedManager;
+    private Need mNeed = new Need();
 
 
     public NeedFragment() {
@@ -108,10 +113,9 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
 
     @Override
     public void onValidationSucceeded() {
-        Need need = new Need();
-        need.setTitle(mTitleEditText.getText().toString());
-        need.setDescription(mDescEditText.getText().toString());
-        need.setGoal(mGoalEditText.getText().toString());
+        mNeed.setTitle(mTitleEditText.getText().toString());
+        mNeed.setDescription(mDescEditText.getText().toString());
+        mNeed.setGoal(mGoalEditText.getText().toString());
         DatePicker datePicker = mDatePickerDialog.getDatePicker();
         int year = datePicker.getYear();
         int month = datePicker.getMonth();
@@ -126,9 +130,9 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
                 return dateFormat.format(calendar.getTime());
             }
         };
-        need.setTargetDate(date);
-        need.setLocation(mLocationEditText.getText().toString());
-        mNeedManager.createNeed(need, mNeedResponseListener, mNeedErrorListener);
+        mNeed.setTargetDate(date);
+        mNeed.setLocation(mLocationEditText.getText().toString());
+        mNeedManager.createNeed(mNeed, mNeedResponseListener, mNeedErrorListener);
     }
 
     private Response.Listener mNeedResponseListener = new Response.Listener() {
@@ -189,8 +193,6 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
         public void onPermissionDenied(ArrayList<String> deniedPermissions) {
             Toast.makeText(getActivity(), "Permission Denied\n" + deniedPermissions.toString(), Toast.LENGTH_SHORT).show();
         }
-
-
     };
 
     private void handleAddConnectionsClick() {
@@ -212,44 +214,27 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
         startActivityForResult(intent, REQUEST_CONTACT);
     }
 
-    private void getContactList() {
-        ContentResolver cr = getContext().getContentResolver();
-        Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
-                null, null, null, null);
-
-        if ((cur != null ? cur.getCount() : 0) > 0) {
-            while (cur != null && cur.moveToNext()) {
-                String id = cur.getString(
-                        cur.getColumnIndex(ContactsContract.Contacts._ID));
-                String name = cur.getString(cur.getColumnIndex(
-                        ContactsContract.Contacts.DISPLAY_NAME));
-
-                if (cur.getInt(cur.getColumnIndex(
-                        ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0) {
-                    Cursor pCur = cr.query(
-                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                            null,
-                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
-                            new String[]{id}, null);
-                    while (pCur.moveToNext()) {
-                        String phoneNo = pCur.getString(pCur.getColumnIndex(
-                                ContactsContract.CommonDataKinds.Phone.NUMBER));
-                        Log.i("shoeb", "Name: " + name);
-                        Log.i("shoeb", "Phone Number: " + phoneNo);
-                    }
-                    pCur.close();
-                }
-            }
-        }
-        if (cur != null) {
-            cur.close();
-        }
-    }
-
     @Override
     public void onFocusChange(View v, boolean hasFocus) {
         if(v.getId() == R.id.target_date_et && hasFocus && !mDatePickerDialog.isShowing()) {
             mDatePickerDialog.show();
         }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        List<Contact> contacts = (List<Contact>) data.getSerializableExtra(RESULT_CONTACT_DATA);
+
+        Set<String> users = new HashSet<>();
+        for (Contact contact : contacts) {
+            for (String number : contact.getPhone()) {
+                users.add(number);
+            }
+        }
+
+        Log.i("shoeb", Arrays.toString(users.toArray()));
+        mNeed.setUsers(new ArrayList<>(users));
     }
 }
