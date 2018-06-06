@@ -36,6 +36,8 @@ public class ContactViewHolder extends RecyclerView.ViewHolder {
     private View mRoot;
     private TextView mName;
     private TextView mDescription;
+    private TextView mNumber;
+    private TextView mLabel;
     private ContactBadge mBadge;
     private CheckBox mSelect;
     private Button mInvite;
@@ -55,6 +57,8 @@ public class ContactViewHolder extends RecyclerView.ViewHolder {
         mBadge = (ContactBadge) root.findViewById(R.id.contact_badge);
         mSelect = (CheckBox) root.findViewById(R.id.select);
         mInvite = (Button) root.findViewById(R.id.invite_button);
+        mNumber = (TextView) root.findViewById(R.id.number);
+        mLabel = (TextView) root.findViewById(R.id.label);
 
         mContactPictureType = contactPictureType;
         mContactDescription = contactDescription;
@@ -74,6 +78,25 @@ public class ContactViewHolder extends RecyclerView.ViewHolder {
 
         // main text / title
         mName.setText(contact.getDisplayName());
+
+        int type = contact.getType();
+        if(type == ContactsContract.CommonDataKinds.Phone.TYPE_HOME) {
+            mLabel.setText("Home");
+        } else if(type == ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE) {
+            mLabel.setText("Mobile");
+        } else if(type == ContactsContract.CommonDataKinds.Phone.TYPE_WORK) {
+            mLabel.setText("Work");
+        }
+
+        mNumber.setText(contact.getPhoneNumber());
+
+
+/*        Log.i("Ruby", "name = " + contact.getDisplayName());
+        Map<Integer, String> map = contact.getPhoneMap();
+        for(int key : contact.getPhoneMap().keySet()) {
+            Log.i("Ruby", "key = " + key);
+            Log.i("Ruby", "value = " + map.get(key));
+        }*/
 
         // description
         String description = "";
@@ -120,8 +143,6 @@ public class ContactViewHolder extends RecyclerView.ViewHolder {
         } else {
             mSelect.setVisibility(View.INVISIBLE);
         }
-
-
 
         mInvite.setVisibility(contact.isRegistered() ? View.INVISIBLE : View.VISIBLE);
     }

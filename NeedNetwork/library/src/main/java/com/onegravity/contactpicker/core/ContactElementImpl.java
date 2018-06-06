@@ -16,6 +16,9 @@
 
 package com.onegravity.contactpicker.core;
 
+import android.arch.persistence.room.ColumnInfo;
+import android.arch.persistence.room.PrimaryKey;
+
 import com.onegravity.contactpicker.ContactElement;
 import com.onegravity.contactpicker.Helper;
 import com.onegravity.contactpicker.OnContactCheckedListener;
@@ -29,12 +32,19 @@ import java.util.Locale;
  */
 abstract class ContactElementImpl implements ContactElement {
 
-    final private long mId;
+    @PrimaryKey
+    public long mId;
+    @ColumnInfo(name = "display_name")
     private String mDisplayName;
 
     transient private List<OnContactCheckedListener> mListeners = new ArrayList<>();
     transient private boolean mChecked = false;
-    transient private boolean mIsRegistered = false;
+    @ColumnInfo(name = "is_registered")
+    transient public boolean mIsRegistered = false;
+
+    public ContactElementImpl() {
+
+    }
 
     ContactElementImpl(long id, String displayName) {
         mId = id;
@@ -51,7 +61,7 @@ abstract class ContactElementImpl implements ContactElement {
         return mDisplayName != null ? mDisplayName : "";
     }
 
-    protected void setDisplayName(String value) {
+    public void setDisplayName(String value) {
         mDisplayName = value;
     }
 

@@ -38,6 +38,7 @@ import android.support.v4.os.CancellationSignal;
 import android.support.v4.os.OperationCanceledException;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
@@ -45,6 +46,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.android.springboard.neednetwork.managers.UserManager;
+import com.android.springboard.neednetwork.utils.Address;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.onegravity.contactpicker.OnContactCheckedListener;
@@ -57,6 +59,7 @@ import com.onegravity.contactpicker.contact.ContactsLoaded;
 import com.onegravity.contactpicker.core.ContactImpl;
 import com.onegravity.contactpicker.core.GroupImpl;
 import com.onegravity.contactpicker.core.PagerAdapter;
+import com.onegravity.contactpicker.database.AppDataBase;
 import com.onegravity.contactpicker.group.Group;
 import com.onegravity.contactpicker.group.GroupsLoaded;
 import com.onegravity.contactpicker.picture.ContactPictureType;
@@ -70,6 +73,7 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -384,7 +388,7 @@ public class ContactPickerActivity extends AppCompatActivity implements
 
         //getSupportLoaderManager().initLoader(GROUPS_LOADER_ID, null, this);
         //getSupportLoaderManager().initLoader(CONTACTS_LOADER_ID, null, this);
-        RegisteredContactsTask registeredContactsTask = new RegisteredContactsTask();
+        RegisteredContactsTask registeredContactsTask = new RegisteredContactsTask(false);
         registeredContactsTask.execute();
     }
 
@@ -461,7 +465,9 @@ public class ContactPickerActivity extends AppCompatActivity implements
             onDone();
             return true;
         } else if (id == R.id.action_refresh) {
-            getSupportLoaderManager().initLoader(CONTACTS_LOADER_ID, null, this);
+            //getSupportLoaderManager().initLoader(CONTACTS_LOADER_ID, null, this);
+            RegisteredContactsTask registeredContactsTask = new RegisteredContactsTask(true);
+            registeredContactsTask.execute();
             return true;
         }
 
@@ -613,12 +619,14 @@ public class ContactPickerActivity extends AppCompatActivity implements
         CancellationSignal mCancellationSignal;
         private List<String> mPhoneNumbersList;
         private UserManager mUserManager;
+        private boolean mRefresh;
 
-        public RegisteredContactsTask() {
+        public RegisteredContactsTask(boolean isRefresh) {
             mCancellationSignal = new CancellationSignal();
             mObserver = new ForceLoadContentObserver();
             mPhoneNumbersList = new ArrayList<>();
             mUserManager = new UserManager(ContactPickerActivity.this);
+            mRefresh = isRefresh;
         }
 
         @Override
@@ -629,40 +637,50 @@ public class ContactPickerActivity extends AppCompatActivity implements
 
         @Override
         protected List<Object> doInBackground(Void... params) {
-            String selection = "";
-            if (mOnlyWithPhoneNumbers) {
-                selection = ContactsContract.Contacts.HAS_PHONE_NUMBER;
-            }
+            AppDataBase appDataBase = AppDataBase.getAppDatabase(ContactPickerActivity.this);
+            List<ContactImpl> databaseContacts = appDataBase.contactDao().getAll();
+            if((databaseContacts == null || databaseContacts.isEmpty()) || mRefresh) {
+                String selection = "";
+                if (mOnlyWithPhoneNumbers) {
+                    selection = ContactsContract.Contacts.HAS_PHONE_NUMBER;
+                }
 
-            Cursor contactsCursor = loadCursor(CONTACTS_URI, CONTACTS_PROJECTION,
-                    selection, null, CONTACTS_SORT);
-            Map<String, ContactImpl> contactsMap = getContacts(contactsCursor);
-            Cursor contactDetailsCursor = loadCursor(CONTACT_DETAILS_URI, CONTACT_DETAILS_PROJECTION,
-                    selection, null, null);
-            readContactDetails(contactDetailsCursor, contactsMap);
+                Cursor contactsCursor = loadCursor(CONTACTS_URI, CONTACTS_PROJECTION,
+                        selection, null, CONTACTS_SORT);
+                Map<String, ContactImpl> contactsMap = getContacts(contactsCursor);
+                Cursor contactDetailsCursor = loadCursor(CONTACT_DETAILS_URI, CONTACT_DETAILS_PROJECTION,
+                        selection, null, null);
+                readContactDetails(contactDetailsCursor, contactsMap);
 
-            Collection<ContactImpl> contacts = contactsMap.values();
-            for(ContactImpl contact : contacts) {
-                for(String number : contact.getPhone()) {
-                    if(!isPhoneNumberExist(number, mPhoneNumbersList)) {
-                        mPhoneNumbersList.add(number);
+                Collection<ContactImpl> contacts = contactsMap.values();
+                for(ContactImpl contact : contacts) {
+                    for(String number : contact.getPhone()) {
+                        Address address = Address.fromExternal(ContactPickerActivity.this, number);
+                        if(!isPhoneNumberExist(address.toString(), mPhoneNumbersList)) {
+                            mPhoneNumbersList.add(address.toString());
+                        }
                     }
                 }
+                Log.i("shoeb", Arrays.toString(mPhoneNumbersList.toArray()));
+                try {
+                    JSONArray response = mUserManager.fetchRegisteredUsers(mPhoneNumbersList);
+                    Gson gson = new Gson();
+                    Type listType = new TypeToken<List<String>>() {}.getType();
+                    List<String> registeredUsersList = gson.fromJson(response.toString(), listType);
+                    readContacts(registeredUsersList, contacts);
+                    saveToDatabase();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (TimeoutException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                readContactsFromDatabase(databaseContacts);
             }
 
-            try {
-                JSONArray response = mUserManager.fetchRegisteredUsers(mPhoneNumbersList);
-                Gson gson = new Gson();
-                Type listType = new TypeToken<List<String>>() {}.getType();
-                List<String> registeredUsersList = gson.fromJson(response.toString(), listType);
-                readContacts(registeredUsersList, contacts);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (TimeoutException e) {
-                e.printStackTrace();
-            }
+
 
             return null;
         }
@@ -706,13 +724,29 @@ public class ContactPickerActivity extends AppCompatActivity implements
         }
     }
 
+    private void saveToDatabase() {
+        AppDataBase appDataBase = AppDataBase.getAppDatabase(ContactPickerActivity.this);
+        appDataBase.contactDao().deleteAll();
+        appDataBase.contactDao().insertAll(mContacts);
+    }
+
     private boolean isPhoneNumberExist(String number, List<String> phoneNumbersList) {
         for(String phone : phoneNumbersList) {
-            if(number.equals(phone)) {
+            if(PhoneNumberUtils.compare(number, phone)) {
                 return true;
             }
         }
         return false;
+    }
+
+    private String getLastnCharacters(String inputString,
+                                      int subStringLength) {
+        int length = inputString.length();
+        if (length <= subStringLength) {
+            return inputString;
+        }
+        int startIndex = length - subStringLength;
+        return inputString.substring(startIndex);
     }
 
     // ****************************************** Contact Methods *******************************************
@@ -766,13 +800,11 @@ public class ContactPickerActivity extends AppCompatActivity implements
         mContactsByLookupKey.clear();
         mNrOfSelectedContacts = 0;
 
-
+        int i = 0;
         for (String registeredNumber : registeredUsersList) {
-            Log.i("shoeb", "1. " + registeredNumber);
             for (ContactImpl contact : contactsList) {
-                for (String number : contact.getPhone()) {
+/*                for (String number : contact.getPhone()) {
                     mContacts.add(contact);
-                    Log.i("shoeb", "2. " + number);
                     mContactsByLookupKey.put(contact.getLookupKey(), contact);
 
                     boolean isChecked = mSelectedContactIds.contains(contact.getId());
@@ -780,12 +812,51 @@ public class ContactPickerActivity extends AppCompatActivity implements
                     mNrOfSelectedContacts += isChecked ? 1 : 0;
 
                     contact.addOnContactCheckedListener(mContactListener);
-                    if(number.equals(registeredNumber)) {
+                    Address address = Address.fromExternal(ContactPickerActivity.this, number);
+                    if(PhoneNumberUtils.compare(address.toString(), registeredNumber)) {
                         contact.setRegistered(true);
+                        break;
+                    }
+                }*/
+
+                Map<Integer, String> map = contact.getPhoneMap();
+                for(int type : map.keySet()) {
+                    ContactImpl newContact = ContactImpl.fromContact(contact, ++i);
+                    String number = map.get(type);
+                    newContact.setType(type);
+                    newContact.setPhoneNumber(number);
+                    mContacts.add(newContact);
+                    //mContactsByLookupKey.put(contact.getLookupKey(), contact);
+
+                    boolean isChecked = mSelectedContactIds.contains(newContact.getId());
+                    newContact.setChecked(isChecked, true);
+                    mNrOfSelectedContacts += isChecked ? 1 : 0;
+
+                    newContact.addOnContactCheckedListener(mContactListener);
+                    Address address = Address.fromExternal(ContactPickerActivity.this, number);
+                    if(PhoneNumberUtils.compare(address.toString(), registeredNumber)) {
+                        newContact.setRegistered(true);
                         break;
                     }
                 }
             }
+        }
+    }
+
+    private void readContactsFromDatabase(List<ContactImpl> contacts) {
+        mContacts.clear();
+        mContactsByLookupKey.clear();
+        mNrOfSelectedContacts = 0;
+
+        int i = 0;
+        for(ContactImpl contact : contacts) {
+            mContacts.add(contact);
+
+            boolean isChecked = mSelectedContactIds.contains(contact.getId());
+            contact.setChecked(isChecked, true);
+            mNrOfSelectedContacts += isChecked ? 1 : 0;
+
+            contact.addOnContactCheckedListener(mContactListener);
         }
     }
 
@@ -858,9 +929,14 @@ public class ContactPickerActivity extends AppCompatActivity implements
                 while (cursor.moveToNext()) {
                     String lookupKey = cursor.getString(cursor.getColumnIndex(ContactsContract.Data.LOOKUP_KEY));
                     ContactImpl contact = contactsByLookupKey.get(lookupKey);
-
                     if (contact != null) {
+                        //Log.i("Ruby", "name = " + contact.getDisplayName());
                         readContactDetails(cursor, contact);
+/*                        Map<Integer, String> map = contact.getPhoneMap();
+                        for(int key : contact.getPhoneMap().keySet()) {
+                            Log.i("Ruby", "type = " + key);
+                            Log.i("Ruby", "number = " + map.get(key));
+                        }*/
                     }
                 }
             } catch (IllegalStateException e) {

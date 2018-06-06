@@ -13,7 +13,7 @@ import android.widget.EditText;
 
 import com.android.springboard.neednetwork.R;
 import com.android.springboard.neednetwork.activities.PhoneVerificationActivity;
-import com.android.springboard.neednetwork.application.ApplicationLoader;
+import com.android.springboard.neednetwork.application.NeedNetApplication;
 import com.android.springboard.neednetwork.constants.ActivityConstants;
 import com.android.springboard.neednetwork.utils.ActivityUtil;
 import com.hbb20.CountryCodePicker;
@@ -68,7 +68,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener, Val
         String country = null;
 
         try {
-            TelephonyManager telephonyManager = (TelephonyManager) ApplicationLoader.applicationContext.getSystemService(Context.TELEPHONY_SERVICE);
+            TelephonyManager telephonyManager = (TelephonyManager) NeedNetApplication.applicationContext.getSystemService(Context.TELEPHONY_SERVICE);
             if (telephonyManager != null) {
                 country = telephonyManager.getSimCountryIso().toUpperCase();
             }
@@ -100,7 +100,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener, Val
     @Override
     public void onValidationSucceeded() {
         ActivityUtil.startActivity(getActivity(), PhoneVerificationActivity.class, ActivityConstants.INTENT_EXTRA_MOBILE_NUMBER,
-                mMobileNumberEt.getText().toString());
+                mCountryCodePicker.getFullNumberWithPlus());
     }
 
     @Override

@@ -1,8 +1,24 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:orientation="vertical"
     android:layout_height="match_parent"
-    tools:context="com.android.springboard.neednetwork.fragments.RegisterFragment">
+    >
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/add_connections_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:layout_below="@id/location_et"
+        android:src="@drawable/ic_people_white_24dp" />
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
 
 <LinearLayout
     android:layout_width="match_parent"
@@ -65,13 +81,8 @@
         android:maxLines="1"
         android:hint="Location"/>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/add_connections_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:src="@drawable/ic_people_white_24dp" />
-
 </LinearLayout>
 </ScrollView>
+
+
+</FrameLayout>

@@ -44,9 +44,9 @@ public class JSONArrayRequest extends JsonRequest<JSONArray> {
             return Response.success(new JSONArray(jsonString),
                     HttpHeaderParser.parseCacheHeaders(response));
         } catch (UnsupportedEncodingException e) {
-            return Response.error(new ParseError(e));
+            return Response.error(new ParseError(response));
         } catch (Exception je) {
-            return Response.error(new ParseError(je));
+            return Response.error(new ParseError(response));
         }
     }
 

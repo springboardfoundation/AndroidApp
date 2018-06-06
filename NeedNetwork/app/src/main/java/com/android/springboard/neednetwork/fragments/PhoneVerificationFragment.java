@@ -19,6 +19,7 @@ import com.android.springboard.neednetwork.managers.UserManager;
 import com.android.springboard.neednetwork.models.User;
 import com.android.springboard.neednetwork.utils.ActivityUtil;
 import com.android.springboard.neednetwork.utils.SharedPrefsUtils;
+import com.android.volley.ParseError;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.google.firebase.iid.FirebaseInstanceId;
@@ -67,10 +68,11 @@ public class PhoneVerificationFragment extends Fragment implements Validator.Val
     }
 
     private void registerUser(String mobileNumber) {
-        String token = FirebaseInstanceId.getInstance().getToken();
+        String deviceId = FirebaseInstanceId.getInstance().getToken();
         User user = new User();
         user.setMobileNumber(mobileNumber);
         user.setUsername(mobileNumber);
+        user.setDeviceID(deviceId);
         mUserManager.registerUser(user, mRegisterResponseListener, mRegisterErrorListener);
     }
 
@@ -87,6 +89,11 @@ public class PhoneVerificationFragment extends Fragment implements Validator.Val
         @Override
         public void onErrorResponse(VolleyError error) {
             Log.i("shoeb", "" + error);
+            ParseError parseError = (ParseError) error;
+            if(parseError.networkResponse.statusCode == 208) {
+                SharedPrefsUtils.setStringPreference(getActivity(), ActivityConstants.PREF_MOBILE_NUMBER, mMobileNumber);
+                ActivityUtil.startActivity(getActivity(), NeedTabsActivity.class);
+            }
         }
     };
 

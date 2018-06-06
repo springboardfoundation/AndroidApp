@@ -7,6 +7,7 @@ package com.android.springboard.neednetwork.constants;
 public class ActivityConstants {
 
     public static final String INTENT_EXTRA_MOBILE_NUMBER = "mobilenumber";
+    public static final String INTENT_EXTRA_NEED = "intent_extra_need";
     public static final String PREF_MOBILE_NUMBER = "mobilenumber";
     public static final String PREF_TOKEN = "token";
 }

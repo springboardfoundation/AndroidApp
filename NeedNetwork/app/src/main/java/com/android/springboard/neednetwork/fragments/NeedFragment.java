@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import com.android.springboard.neednetwork.R;
 import com.android.springboard.neednetwork.activities.ContactPickerActivity;
+import com.android.springboard.neednetwork.constants.ActivityConstants;
 import com.android.springboard.neednetwork.managers.NeedManager;
 import com.android.springboard.neednetwork.models.Need;
 import com.android.springboard.neednetwork.utils.ActivityUtil;
@@ -61,11 +62,13 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
     @NotEmpty
     private EditText mTargetDateEditText;
     private EditText mLocationEditText;
+    private FloatingActionButton mFloatingActionButton;
 
     private Validator mValidator;
     private DatePickerDialog mDatePickerDialog;
     private NeedManager mNeedManager;
-    private Need mNeed = new Need();
+    private Need mNeed;
+    private HashSet<Long> mPreSelectedContactIds = new HashSet<>();
 
 
     public NeedFragment() {
@@ -82,6 +85,24 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
         mDatePickerDialog = new DatePickerDialog(getContext(), mDateSetListener,
                 calendar.get(Calendar.YEAR) , calendar.get(Calendar.MONTH) , calendar.get(Calendar.DAY_OF_MONTH));
         mNeedManager = new NeedManager(getContext());
+        Intent intent = getActivity().getIntent();
+        mNeed = intent.getParcelableExtra(ActivityConstants.INTENT_EXTRA_NEED);
+    }
+
+    private void populateNeed(Need need) {
+        if( need == null) {
+            return;
+        }
+
+        mTitleEditText.setText(need.getTitle());
+        mDescEditText.setText(need.getDescription());
+        mGoalEditText.setText(need.getGoal());
+        mLocationEditText.setText(need.getLocation());
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(Long.valueOf(need.getTargetDate()));
+        final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        mTargetDateEditText.setText(dateFormat.format(calendar.getTime()));
+        mDatePickerDialog.updateDate(calendar.get(Calendar.YEAR) , calendar.get(Calendar.MONTH) , calendar.get(Calendar.DAY_OF_MONTH));
     }
 
     @Override
@@ -103,16 +124,22 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
         mTargetDateEditText.setKeyListener(null);
         mLocationEditText = (EditText) view.findViewById(R.id.location_et);
 
-        FloatingActionButton actionConnectionsButton = (FloatingActionButton) view.findViewById(R.id.add_connections_btn);
-        actionConnectionsButton.setOnClickListener(this);
+        mFloatingActionButton = (FloatingActionButton) view.findViewById(R.id.add_connections_btn);
+        mFloatingActionButton.setOnClickListener(this);
+
+        populateNeed(mNeed);
     }
 
-    public void addNeed() {
+    public void addOrUpdateNeed() {
         mValidator.validate();
     }
 
     @Override
     public void onValidationSucceeded() {
+        if(mNeed == null) {
+            mNeed = new Need();
+        }
+
         mNeed.setTitle(mTitleEditText.getText().toString());
         mNeed.setDescription(mDescEditText.getText().toString());
         mNeed.setGoal(mGoalEditText.getText().toString());
@@ -130,15 +157,21 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
                 return dateFormat.format(calendar.getTime());
             }
         };
-        mNeed.setTargetDate(date);
+        mNeed.setTargetDate(date.toString());
         mNeed.setLocation(mLocationEditText.getText().toString());
-        mNeedManager.createNeed(mNeed, mNeedResponseListener, mNeedErrorListener);
+
+        if (mNeed.getId() == null || mNeed.getId().isEmpty()) {
+            mNeedManager.createNeed(mNeed, mNeedResponseListener, mNeedErrorListener);
+        } else {
+            mNeedManager.updateNeed(mNeed, mNeedResponseListener, mNeedErrorListener);
+        }
     }
 
     private Response.Listener mNeedResponseListener = new Response.Listener() {
         @Override
         public void onResponse(Object response) {
             Log.i("shoeb", "" + response);
+            getActivity().finish();
         }
     };
 
@@ -209,8 +242,16 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
                 .putExtra(ContactPickerActivity.EXTRA_CONTACT_DESCRIPTION_TYPE,
                         ContactsContract.CommonDataKinds.Email.TYPE_WORK)
 
+
+
                 .putExtra(ContactPickerActivity.EXTRA_CONTACT_SORT_ORDER,
                         ContactSortOrder.AUTOMATIC.name());
+
+        if(!mPreSelectedContactIds.isEmpty()) {
+            intent.putExtra(ContactPickerActivity.EXTRA_PRESELECTED_CONTACTS,
+                    mPreSelectedContactIds);
+        }
+
         startActivityForResult(intent, REQUEST_CONTACT);
     }
 
@@ -225,6 +266,10 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        if(data == null || data.getSerializableExtra(RESULT_CONTACT_DATA) == null) {
+            return;
+        }
+
         List<Contact> contacts = (List<Contact>) data.getSerializableExtra(RESULT_CONTACT_DATA);
 
         Set<String> users = new HashSet<>();
@@ -232,9 +277,19 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
             for (String number : contact.getPhone()) {
                 users.add(number);
             }
+
+            mPreSelectedContactIds.add(contact.getId());
         }
 
         Log.i("shoeb", Arrays.toString(users.toArray()));
         mNeed.setUsers(new ArrayList<>(users));
+    }
+
+    public void hideActionButton() {
+        mFloatingActionButton.hide();
+    }
+
+    public void showActionButton() {
+        mFloatingActionButton.show();
     }
 }

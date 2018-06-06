@@ -46,9 +46,9 @@ public class JSONObjectRequest extends JsonRequest<JSONObject> {
             return Response.success(new JSONObject(jsonString),
                     HttpHeaderParser.parseCacheHeaders(response));
         } catch (UnsupportedEncodingException e) {
-            return Response.error(new ParseError(e));
+            return Response.error(new ParseError(response));
         } catch (Exception je) {
-            return Response.error(new ParseError(je));
+            return Response.error(new ParseError(response));
         }
     }
 }

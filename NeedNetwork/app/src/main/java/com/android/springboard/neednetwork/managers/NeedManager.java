@@ -42,7 +42,8 @@ public class NeedManager {
         JSONObject jsonObject = null;
 
         try {
-            jsonObject = new JSONObject(gson.toJson(need));
+            String json = gson.toJson(need);
+            jsonObject = new JSONObject(json);
         }catch(JSONException exp) {
             exp.printStackTrace();
         }
@@ -63,17 +64,28 @@ public class NeedManager {
 
     public void updateNeed(Need need, Response.Listener<JSONObject> jsonObjectListener, Response.ErrorListener errorListener) {
         RequestQueue queue = Volley.newRequestQueue(mContext);
+        queue.getCache().clear();
         Gson gson = new Gson();
         JSONObject jsonObject = null;
+
         try {
-            jsonObject = new JSONObject(gson.toJson(need));
-        } catch (JSONException e) {
-            e.printStackTrace();
+            String json = gson.toJson(need);
+            jsonObject = new JSONObject(json);
+        }catch(JSONException exp) {
+            exp.printStackTrace();
         }
 
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest
-                (Method.POST, Constants.REST_API_REGISTER_USER, jsonObject, jsonObjectListener, errorListener);
-
+        String mobileNumber = SharedPrefsUtils.getStringPreference(mContext, ActivityConstants.PREF_MOBILE_NUMBER);
+        String url = String.format(Constants.REST_API_UPDATE_NEED, mobileNumber, need.getId());
+        JSONObjectRequest jsObjRequest = new JSONObjectRequest(Method.PUT, url, jsonObject,jsonObjectListener, errorListener) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> params = new HashMap<>();
+                String token = SharedPrefsUtils.getStringPreference(mContext, ActivityConstants.PREF_TOKEN);
+                params.put(Constants.HEADER_AUTHORIZATION, new String(Base64.decode(token, Base64.DEFAULT)));
+                return params;
+            }
+        };
         queue.add(jsObjRequest);
     }
 

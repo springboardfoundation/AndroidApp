@@ -20,18 +20,23 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.android.springboard.neednetwork.R;
+import com.android.springboard.neednetwork.application.NeedNetApplication;
 import com.android.springboard.neednetwork.constants.ActivityConstants;
 import com.android.springboard.neednetwork.constants.Constants;
 import com.android.springboard.neednetwork.fragments.CurrentNeedsListFragment;
 import com.android.springboard.neednetwork.fragments.MyNeedsListFragment;
 import com.android.springboard.neednetwork.managers.UserManager;
+import com.android.springboard.neednetwork.models.Need;
 import com.android.springboard.neednetwork.models.User;
 import com.android.springboard.neednetwork.utils.ActivityUtil;
 import com.android.springboard.neednetwork.utils.SharedPrefsUtils;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -55,20 +60,71 @@ public class NeedTabsActivity extends AppCompatActivity implements TabLayout.OnT
     private CharSequence mDrawerTitle;
     private CharSequence mTitle;
     private UserManager mUserManager;
+    private MyNeedsListFragment mMyNeedsListFragment;
+    private CurrentNeedsListFragment mCurrentNeedsListFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_need_tabs);
 
-        initViews();
-        String mobileNumber = SharedPrefsUtils.getStringPreference(this, ActivityConstants.PREF_MOBILE_NUMBER);
         mUserManager = new UserManager(this);
-        loadNeeds(mobileNumber);
+        initViews();
 
         String token = FirebaseInstanceId.getInstance().getToken();
-        Log.i("shoeb", "token = " + token);
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        String mobileNumber = SharedPrefsUtils.getStringPreference(this, ActivityConstants.PREF_MOBILE_NUMBER);
+        loadNeeds(mobileNumber);
+    }
+
+    /*    private void testGetContacts() {
+        ContentResolver cr = getContentResolver();
+        Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
+        if (cur.getCount() > 0) {
+            while (cur.moveToNext()) {
+                String id = cur.getString(cur.getColumnIndex(
+                        ContactsContract.Contacts._ID));
+                String name = cur.getString(cur.getColumnIndex(
+                        ContactsContract.Contacts.DISPLAY_NAME));
+                if (Integer.parseInt(cur.getString(cur.getColumnIndex(
+                        ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
+                    Cursor pCur = cr.query(
+                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                            null,
+                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID +" = ?",
+                            new String[]{id}, null);
+                    while (pCur.moveToNext()) {
+                        int phoneType = pCur.getInt(pCur.getColumnIndex(
+                                ContactsContract.CommonDataKinds.Phone.TYPE));
+                        String phoneNumber = pCur.getString(pCur.getColumnIndex(
+                                ContactsContract.CommonDataKinds.Phone.NUMBER));
+                        switch (phoneType) {
+                            case ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE:
+                                Log.e(name + "(mobile number)", phoneNumber);
+                                break;
+                            case ContactsContract.CommonDataKinds.Phone.TYPE_HOME:
+                                Log.e(name + "(home number)", phoneNumber);
+                                break;
+                            case ContactsContract.CommonDataKinds.Phone.TYPE_WORK:
+                                Log.e(name + "(work number)", phoneNumber);
+                                break;
+                            case ContactsContract.CommonDataKinds.Phone.TYPE_OTHER:
+                                Log.e(name + "(other number)", phoneNumber);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    pCur.close();
+                }
+            }
+        }
+    }*/
 
     private void initViews() {
         mAddNewNeedButton = (FloatingActionButton) findViewById(R.id.add_need_btn);
@@ -136,11 +192,22 @@ public class NeedTabsActivity extends AppCompatActivity implements TabLayout.OnT
                 String token = headers.getString(HEADER_AUTHORIZATION);
                 SharedPrefsUtils.setStringPreference(NeedTabsActivity.this, ActivityConstants.PREF_TOKEN, Base64.encodeToString(token.getBytes(),
                         Base64.DEFAULT));
+                JSONArray responseData = response.getJSONArray(Constants.RESPONSE_DATA);
+                handleResponseData(responseData);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
     };
+
+    private void handleResponseData(JSONArray responseData) {
+        Gson gson = new Gson();
+        TypeToken<List<Need>> token = new TypeToken<List<Need>>() {};
+        List<Need> needList = gson.fromJson(responseData.toString(), token.getType());
+        NeedNetApplication.setMyNeedList(needList);
+        Log.i("shoeb", responseData.toString());
+        mMyNeedsListFragment.loadAdapter();
+    }
 
     private Response.ErrorListener mLoginErrorListener = new Response.ErrorListener() {
         @Override
@@ -163,6 +230,14 @@ public class NeedTabsActivity extends AppCompatActivity implements TabLayout.OnT
         menu.findItem(R.id.action_websearch).setVisible(!drawerOpen);*/
         return super.onPrepareOptionsMenu(menu);
     }
+
+/*    @Override
+    public void onListFragmentInteraction(Need item) {
+        Intent intent = new Intent();
+        intent.setClass(this, NeedActivity.class);
+        intent.putExtra(ActivityConstants.INTENT_EXTRA_NEED, item);
+        startActivity(intent);
+    }*/
 
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
         @Override
@@ -200,8 +275,10 @@ public class NeedTabsActivity extends AppCompatActivity implements TabLayout.OnT
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
 
-        adapter.addFragment(new MyNeedsListFragment(), TAB_MY_NEEDS);
-        adapter.addFragment(new CurrentNeedsListFragment(), TAB_CURRENT_NEEDS);
+        mMyNeedsListFragment = new MyNeedsListFragment();
+        mCurrentNeedsListFragment = new CurrentNeedsListFragment();
+        adapter.addFragment(mMyNeedsListFragment, TAB_MY_NEEDS);
+        adapter.addFragment(mCurrentNeedsListFragment, TAB_CURRENT_NEEDS);
         viewPager.setAdapter(adapter);
     }
 

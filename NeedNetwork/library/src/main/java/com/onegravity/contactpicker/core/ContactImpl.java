@@ -16,6 +16,9 @@
 
 package com.onegravity.contactpicker.core;
 
+import android.arch.persistence.room.ColumnInfo;
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
@@ -39,6 +42,7 @@ import java.util.regex.Pattern;
  * It can be instantiated and modified only within its own package to prevent modifications from
  * classes outside the package.
  */
+@Entity
 public class ContactImpl extends ContactElementImpl implements Contact {
 
     private static final Pattern CONTACT_LETTER = Pattern.compile("[^a-zA-Z]*([a-zA-Z]).*");
@@ -79,18 +83,46 @@ public class ContactImpl extends ContactElementImpl implements Contact {
         return new ContactImpl(id, lookupKey, displayName, firstName, lastName, uri);
     }
 
-    final private String mLookupKey;
+    public static ContactImpl fromContact(Contact contact, int id) {
+        String lookupKey = contact.getLookupKey();
+        String displayName = contact.getDisplayName();
+        String firstName = contact.getFirstName();
+        String lastName = contact.getLastName();
+        Uri uri = contact.getPhotoUri();
+        return new ContactImpl(id, lookupKey, displayName, firstName, lastName, uri);
+    }
+
+//    @PrimaryKey
+//    public int uid;
+    @ColumnInfo(name = "lookup_key")
+    public String mLookupKey;
     private String mFirstName = "";
     private String mLastName = "";
+    @ColumnInfo(name = "type")
+    private int mType;
+    @ColumnInfo(name = "phone_number")
+    private String mPhoneNumber = "";
+    @Ignore
     private Map<Integer, String> mEmail = new HashMap<>();
+    @Ignore
     private Map<Integer, String> mPhone = new HashMap<>();
+    @Ignore
     private Map<Integer, String> mAddress = new HashMap<>();
-    private String mPhotoUri;
+    @ColumnInfo(name = "photo_uri")
+    public String mPhotoUri;
+    @Ignore
     private Set<Long> mGroupIds = new HashSet<>();
 
+    @Ignore
     private char mContactLetterBadge;
+    @Ignore
     private char mContactLetterScroll;
+    @Ignore
     private Integer mContactColor;
+
+    public ContactImpl() {
+
+    }
 
     protected ContactImpl(long id, String lookupKey, String displayName, String firstName, String lastName, Uri photoUri) {
         super(id, displayName);
@@ -150,6 +182,21 @@ public class ContactImpl extends ContactElementImpl implements Contact {
         }
 
         return phones;
+    }
+
+    @Override
+    public Map<Integer, String> getPhoneMap() {
+        return mPhone;
+    }
+
+    @Override
+    public int getType() {
+        return mType;
+    }
+
+    @Override
+    public String getPhoneNumber() {
+        return mPhoneNumber;
     }
 
     @Override
@@ -237,5 +284,17 @@ public class ContactImpl extends ContactElementImpl implements Contact {
 
     public void addGroupId(long value) {
         mGroupIds.add(value);
+    }
+
+    public void setPhoneNumber(String number) {
+        mPhoneNumber = number;
+    }
+
+    public void setType(int type) {
+        mType = type;
+    }
+
+    public String getmPhotoUri() {
+        return mPhotoUri;
     }
 }

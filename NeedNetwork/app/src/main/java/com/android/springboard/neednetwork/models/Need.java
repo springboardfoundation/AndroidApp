@@ -1,14 +1,15 @@
 package com.android.springboard.neednetwork.models;
 
-import java.util.Date;
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by Shouib on 7/9/2017.
  */
 
-public class Need {
+public class Need implements Parcelable {
 
     public Need() {
         super();
@@ -16,11 +17,11 @@ public class Need {
 
     private String id;
     private String description;
-    private Date targetDate; // days
+    private String targetDate; // days
     private String location;
     private String createdBy;
     private List<String> users;
-    private Set<String> otherUsers;
+    private List<String> otherUsers;
     private String goal;
 
     public String getId() {
@@ -38,11 +39,11 @@ public class Need {
         this.title = title;
     }
 
-    public Date getTargetDate() {
+    public String getTargetDate() {
         return targetDate;
     }
 
-    public void setTargetDate(Date targetDate) {
+    public void setTargetDate(String targetDate) {
         this.targetDate = targetDate;
     }
 
@@ -84,11 +85,11 @@ public class Need {
         this.users = users;
     }
 
-    public Set<String> getOtherUsers() {
+    public List<String> getOtherUsers() {
         return otherUsers;
     }
 
-    public void setOtherUsers(Set<String> otherUsers) {
+    public void setOtherUsers(List<String> otherUsers) {
         this.otherUsers = otherUsers;
     }
 
@@ -99,5 +100,48 @@ public class Need {
     public void setGoal(String goal) {
         this.goal = goal;
     }
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.id);
+        dest.writeString(this.description);
+        dest.writeString(this.targetDate);
+        dest.writeString(this.location);
+        dest.writeString(this.createdBy);
+        dest.writeStringList(this.users);
+        dest.writeStringList(this.otherUsers);
+        dest.writeString(this.goal);
+        dest.writeString(this.title);
+    }
+
+    protected Need(Parcel in) {
+        this.id = in.readString();
+        this.description = in.readString();
+        this.targetDate = in.readString();
+        this.location = in.readString();
+        this.createdBy = in.readString();
+        this.users = in.createStringArrayList();
+        this.otherUsers = in.createStringArrayList();
+        this.goal = in.readString();
+        this.title = in.readString();
+    }
+
+    public static final Parcelable.Creator<Need> CREATOR = new Parcelable.Creator<Need>() {
+        @Override
+        public Need createFromParcel(Parcel source) {
+            return new Need(source);
+        }
+
+        @Override
+        public Need[] newArray(int size) {
+            return new Need[size];
+        }
+    };
 }
 

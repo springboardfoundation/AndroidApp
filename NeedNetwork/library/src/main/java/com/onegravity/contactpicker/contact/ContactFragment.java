@@ -77,6 +77,7 @@ public class ContactFragment extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        setRetainInstance(true);
         Bundle args = getArguments();
         mSortOrder = ContactSortOrder.lookup( args.getString("sortOrder") );
         mPictureType = ContactPictureType.lookup( args.getString("pictureType") );
@@ -130,7 +131,7 @@ public class ContactFragment extends BaseFragment {
         // if all are checked then un-check the contacts, otherwise check them all
         boolean isChecked = ! allChecked;
         for (Contact contact : mFilteredContacts) {
-            if (contact.isChecked() != isChecked) {
+            if (contact.isChecked() != isChecked && contact.isRegistered()) {
                 contact.setChecked(isChecked, true);
             }
         }
