@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.android.springboard.neednetwork">
+    package="com.android.springboard.neednetwork"
+    android:installLocation="preferExternal">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
@@ -9,64 +10,89 @@
     <application
         android:name=".application.NeedNetApplication"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/need_icon"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/need_icon"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.LoginActivity">
+        <activity android:name=".activities.LoginActivity"
+            android:screenOrientation="portrait"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.RegisterActivity"
-            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".activities.RegisterActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".activities.NeedTabsActivity"
             android:screenOrientation="portrait"
+            android:launchMode="singleTask"
             android:theme="@style/TabsTheme" />
         <activity
             android:name=".activities.NeedActivity"
+            android:parentActivityName=".activities.NeedTabsActivity"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="stateAlwaysHidden"
-            android:parentActivityName=".activities.NeedTabsActivity" />
+            android:windowSoftInputMode="stateAlwaysHidden" />
         <activity
             android:name=".activities.ContactPickerActivity"
-            android:screenOrientation="portrait"
             android:enabled="true"
             android:exported="false"
-            android:parentActivityName=".activities.NeedActivity">
+            android:parentActivityName=".activities.NeedActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
         </activity>
-<!--        <activity android:name=".activities.IntroActivity">
+        <!--
+            <activity android:name=".activities.IntroActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>-->
-        <activity android:name=".activities.PhoneVerificationActivity"
-            android:screenOrientation="portrait"></activity>
+        </activity>
+        -->
+        <activity
+            android:name=".activities.PhoneVerificationActivity"
+            android:screenOrientation="portrait" />
 
-        <service
-            android:name=".services.AppFirebaseInstanceIdService">
+        <service android:name="com.deltadna.android.sdk.notifications.NotificationListenerService">
             <intent-filter>
-                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
 
-        <service
-            android:name=".services.AppFirebaseMessagingService">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
-            </intent-filter>
-        </service>
+        <meta-data
+            android:name="ddna_application_id"
+            android:resource="@string/application_id" />
+        <meta-data
+            android:name="ddna_sender_id"
+            android:resource="@string/sender_id" />
+        <meta-data
+            android:name="ddna_notification_icon"
+            android:resource="@drawable/notification_icon" />
 
+        <receiver
+            android:name=".receivers.FireBaseReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.deltadna.android.sdk.notifications.REGISTERED" />
+                <action android:name="com.deltadna.android.sdk.notifications.REGISTRATION_FAILED" />
+                <action android:name="com.deltadna.android.sdk.notifications.MESSAGE_RECEIVED" />
+                <action android:name="com.deltadna.android.sdk.notifications.NOTIFICATION_POSTED" />
+                <action android:name="com.deltadna.android.sdk.notifications.NOTIFICATION_OPENED" />
+                <action android:name="com.deltadna.android.sdk.notifications.NOTIFICATION_DISMISSED" />
+            </intent-filter>
+        </receiver>
+
+        <activity android:name=".activities.OthersNeedActivity"
+            android:parentActivityName=".activities.NeedTabsActivity"
+            android:screenOrientation="portrait"
+            ></activity>
     </application>
 
 </manifest>

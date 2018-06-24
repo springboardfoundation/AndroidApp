@@ -1,0 +1,151 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_height="match_parent"
+    >
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/add_connections_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:layout_below="@id/location_et"
+        android:src="@drawable/ic_people_white_24dp" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_margin="@dimen/fragment_register_margin"
+            >
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/fragment_register_margin_top"
+                android:layout_marginStart="@dimen/fragment_register_margin"
+                android:nextFocusDown="@id/description"
+                android:imeOptions="actionNext"
+                android:textStyle="bold"
+                android:inputType="text"
+                android:textSize="22sp"
+                android:text="Title"/>
+
+            <TextView
+                android:id="@+id/title_et"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/fragment_register_margin"
+                android:maxLines="1"
+                android:nextFocusDown="@id/description"
+                android:imeOptions="actionNext"
+                android:inputType="text"
+                android:textSize="18sp"
+                android:hint="Title"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/fragment_register_margin_top"
+                android:layout_marginStart="@dimen/fragment_register_margin"
+                android:nextFocusDown="@id/description"
+                android:imeOptions="actionNext"
+                android:textStyle="bold"
+                android:inputType="text"
+                android:textSize="22sp"
+                android:text="Description"/>
+
+            <TextView
+                android:id="@+id/description_et"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="top|left"
+                android:inputType="text|textMultiLine"
+                android:layout_marginStart="@dimen/fragment_register_margin"
+                android:nextFocusDown="@+id/goal_et"
+                android:imeOptions="actionNext"
+                android:textSize="18sp"
+                android:hint="Description"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/fragment_register_margin_top"
+                android:layout_marginStart="@dimen/fragment_register_margin"
+                android:nextFocusDown="@id/description"
+                android:imeOptions="actionNext"
+                android:textStyle="bold"
+                android:inputType="text"
+                android:textSize="22sp"
+                android:text="Goal"/>
+
+            <TextView
+                android:id="@id/goal_et"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/fragment_register_margin"
+                android:nextFocusDown="@+id/target_date_et"
+                android:imeOptions="actionNext"
+                android:inputType="text"
+                android:textSize="18sp"
+                android:hint="Goal"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/fragment_register_margin_top"
+                android:layout_marginStart="@dimen/fragment_register_margin"
+                android:nextFocusDown="@id/description"
+                android:imeOptions="actionNext"
+                android:textStyle="bold"
+                android:inputType="text"
+                android:textSize="22sp"
+                android:text="Target date"/>
+
+            <TextView
+                android:id="@id/target_date_et"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/fragment_register_margin"
+                android:cursorVisible="false"
+                android:nextFocusDown="@+id/location_et"
+                android:imeOptions="actionNext"
+                android:inputType="text"
+                android:textSize="18sp"
+                android:hint="Target date"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/fragment_register_margin_top"
+                android:layout_marginStart="@dimen/fragment_register_margin"
+                android:nextFocusDown="@id/description"
+                android:imeOptions="actionNext"
+                android:textStyle="bold"
+                android:inputType="text"
+                android:textSize="22sp"
+                android:text="Location"/>
+
+            <TextView
+                android:id="@id/location_et"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/fragment_register_margin"
+                android:imeOptions="actionDone"
+                android:inputType="text"
+                android:textSize="18sp"
+                android:hint="Location"/>
+
+        </LinearLayout>
+    </ScrollView>
+
+
+</FrameLayout>

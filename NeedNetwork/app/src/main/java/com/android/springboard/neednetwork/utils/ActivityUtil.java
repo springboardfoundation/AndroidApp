@@ -1,6 +1,7 @@
 package com.android.springboard.neednetwork.utils;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.view.View;
@@ -23,11 +24,30 @@ public class ActivityUtil {
         currentActivity.startActivity(intent);
     }
 
+    public static void startActivity(Fragment currentFragment, Class<?> klass) {
+        Intent intent = new Intent();
+        intent.setClass(currentFragment.getActivity(), klass);
+        currentFragment.startActivity(intent);
+    }
+
+    public static void startActivityForResult(Fragment currentFragment, Class<?> klass, int requestCode) {
+        Intent intent = new Intent();
+        intent.setClass(currentFragment.getActivity(), klass);
+        currentFragment.startActivityForResult(intent, requestCode);
+    }
+
     public static void startActivity(Activity currentActivity, Class<?> klass, String keyExtra, String valueExtra) {
         Intent intent = new Intent();
         intent.setClass(currentActivity, klass);
         intent.putExtra(keyExtra, valueExtra);
         currentActivity.startActivity(intent);
+    }
+
+    public static void startActivityForResult(Fragment currentFragment, Class<?> klass, int requestCode, String keyExtra, String valueExtra) {
+        Intent intent = new Intent();
+        intent.setClass(currentFragment.getActivity(), klass);
+        intent.putExtra(keyExtra, valueExtra);
+        currentFragment.startActivityForResult(intent, requestCode);
     }
 
     public static void handleEditTextValidationError(Context context, List<ValidationError> errors) {

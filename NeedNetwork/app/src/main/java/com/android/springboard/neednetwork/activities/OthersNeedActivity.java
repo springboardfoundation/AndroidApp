@@ -1,7 +1,6 @@
 package com.android.springboard.neednetwork.activities;
 
 import android.app.FragmentManager;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -9,22 +8,22 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.android.springboard.neednetwork.R;
-import com.android.springboard.neednetwork.fragments.PhoneVerificationFragment;
+import com.android.springboard.neednetwork.fragments.OthersNeedFragment;
 
-public class PhoneVerificationActivity extends AppCompatActivity {
+public class OthersNeedActivity extends AppCompatActivity {
 
-    private PhoneVerificationFragment mFragment;
+    private OthersNeedFragment mOthersNeedFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_phone_verification);
+        setContentView(R.layout.activity_others_need);
 
         ActionBar actionBar = getSupportActionBar();
-        actionBar.setTitle(R.string.mobile_verification_title);
+        actionBar.setDisplayHomeAsUpEnabled(true);
 
         FragmentManager fragmentManager = getFragmentManager();
-        mFragment = (PhoneVerificationFragment) fragmentManager.findFragmentById(R.id.fragment);
+        mOthersNeedFragment = (OthersNeedFragment) fragmentManager.findFragmentById(R.id.others_need_fragment);
     }
 
     @Override
@@ -39,17 +38,10 @@ public class PhoneVerificationActivity extends AppCompatActivity {
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.done:
-                mFragment.handleOk();
+                mOthersNeedFragment.addUsers();
                 return true;
-
             default:
                 return super.onOptionsItemSelected(item);
         }
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
     }
 }

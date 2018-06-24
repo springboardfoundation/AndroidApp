@@ -1,8 +1,6 @@
 package com.android.springboard.neednetwork.callbacks;
 
 import android.content.Context;
-import android.os.Build;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -44,15 +42,28 @@ public class ToolbarActionModeCallback implements ActionMode.Callback {
 
         //Sometimes the meu will not be visible so for that we need to set their visibility manually in this method
         //So here show action menu according to SDK Levels
-        if (Build.VERSION.SDK_INT < 11) {
+        /*if (Build.VERSION.SDK_INT < 11) {
             MenuItemCompat.setShowAsAction(menu.findItem(R.id.action_delete), MenuItemCompat.SHOW_AS_ACTION_NEVER);
             //MenuItemCompat.setShowAsAction(menu.findItem(R.id.action_copy), MenuItemCompat.SHOW_AS_ACTION_NEVER);
             //MenuItemCompat.setShowAsAction(menu.findItem(R.id.action_forward), MenuItemCompat.SHOW_AS_ACTION_NEVER);
         } else {
-            menu.findItem(R.id.action_delete).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+            MenuItem deleteMenu = menu.findItem(R.id.action_delete);
+            deleteMenu.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
             //menu.findItem(R.id.action_copy).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
             //menu.findItem(R.id.action_forward).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        }*/
+
+        int selectedCount = recyclerView_adapter.getSelectedCount();
+        MenuItem deleteMenu = menu.findItem(R.id.action_delete);
+        deleteMenu.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        if(selectedCount > 1) {
+            deleteMenu.setVisible(false);
+        } else {
+            deleteMenu.setVisible(true);
         }
+
+
+
 
         return true;
     }

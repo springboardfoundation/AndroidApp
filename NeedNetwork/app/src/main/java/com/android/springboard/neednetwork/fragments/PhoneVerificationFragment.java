@@ -10,9 +10,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.android.springboard.neednetwork.R;
-import com.android.springboard.neednetwork.activities.NeedTabsActivity;
 import com.android.springboard.neednetwork.constants.ActivityConstants;
 import com.android.springboard.neednetwork.managers.NeedManager;
 import com.android.springboard.neednetwork.managers.UserManager;
@@ -22,7 +22,7 @@ import com.android.springboard.neednetwork.utils.SharedPrefsUtils;
 import com.android.volley.ParseError;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.google.firebase.iid.FirebaseInstanceId;
+import com.deltadna.android.sdk.DDNA;
 import com.mobsandgeeks.saripaar.ValidationError;
 import com.mobsandgeeks.saripaar.Validator;
 import com.mobsandgeeks.saripaar.annotation.NotEmpty;
@@ -68,7 +68,7 @@ public class PhoneVerificationFragment extends Fragment implements Validator.Val
     }
 
     private void registerUser(String mobileNumber) {
-        String deviceId = FirebaseInstanceId.getInstance().getToken();
+        String deviceId = DDNA.instance().getRegistrationId();
         User user = new User();
         user.setMobileNumber(mobileNumber);
         user.setUsername(mobileNumber);
@@ -80,8 +80,7 @@ public class PhoneVerificationFragment extends Fragment implements Validator.Val
         @Override
         public void onResponse(Object response) {
             Log.i("shoeb", "" + response);
-            SharedPrefsUtils.setStringPreference(getActivity(), ActivityConstants.PREF_MOBILE_NUMBER, mMobileNumber);
-            ActivityUtil.startActivity(getActivity(), NeedTabsActivity.class);
+            onRegistrationSuccess();
         }
     };
 
@@ -89,13 +88,22 @@ public class PhoneVerificationFragment extends Fragment implements Validator.Val
         @Override
         public void onErrorResponse(VolleyError error) {
             Log.i("shoeb", "" + error);
-            ParseError parseError = (ParseError) error;
-            if(parseError.networkResponse.statusCode == 208) {
-                SharedPrefsUtils.setStringPreference(getActivity(), ActivityConstants.PREF_MOBILE_NUMBER, mMobileNumber);
-                ActivityUtil.startActivity(getActivity(), NeedTabsActivity.class);
+            if(error != null && error instanceof ParseError) {
+                ParseError parseError = (ParseError) error;
+                if(parseError.networkResponse.statusCode == 208) {
+                    onRegistrationSuccess();
+                }
+            } else {
+                Toast.makeText(getActivity(), R.string.text_network_error, Toast.LENGTH_LONG).show();
             }
         }
     };
+
+    private void onRegistrationSuccess() {
+        SharedPrefsUtils.setStringPreference(getActivity(), ActivityConstants.PREF_MOBILE_NUMBER, mMobileNumber);
+        getActivity().setResult(Activity.RESULT_OK);
+        getActivity().finish();
+    }
 
     private void initViews(View view) {
         mSecurityCodeEt = (EditText) view.findViewById(R.id.security_code_et);

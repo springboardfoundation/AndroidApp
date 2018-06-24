@@ -2,15 +2,14 @@ package com.android.springboard.neednetwork.activities;
 
 import android.Manifest;
 import android.app.FragmentManager;
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.android.springboard.neednetwork.R;
 import com.android.springboard.neednetwork.fragments.LoginFragment;
-import com.android.springboard.neednetwork.utils.ActivityUtil;
 import com.android.springboard.neednetwork.utils.SharedPrefsUtils;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
@@ -19,7 +18,7 @@ import java.util.ArrayList;
 
 import static com.android.springboard.neednetwork.constants.ActivityConstants.PREF_MOBILE_NUMBER;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends BaseActivity {
 
     private LoginFragment mFragment;
 
@@ -29,8 +28,10 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         String mobileNumber = SharedPrefsUtils.getStringPreference(this, PREF_MOBILE_NUMBER);
-        if(mobileNumber != null && !mobileNumber.isEmpty()) {
-            ActivityUtil.startActivity(this, NeedTabsActivity.class);
+        if (mobileNumber != null && !mobileNumber.isEmpty()) {
+            Intent intent = new Intent(this, NeedTabsActivity.class);
+            startActivity(intent);
+
             finish();
             return;
         }
@@ -87,5 +88,10 @@ public class LoginActivity extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }

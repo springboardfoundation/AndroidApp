@@ -1,5 +1,6 @@
 package com.android.springboard.neednetwork.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
@@ -9,7 +10,6 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Base64;
 import android.util.Log;
@@ -18,13 +18,15 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.android.springboard.neednetwork.R;
-import com.android.springboard.neednetwork.application.NeedNetApplication;
 import com.android.springboard.neednetwork.constants.ActivityConstants;
 import com.android.springboard.neednetwork.constants.Constants;
 import com.android.springboard.neednetwork.fragments.CurrentNeedsListFragment;
 import com.android.springboard.neednetwork.fragments.MyNeedsListFragment;
+import com.android.springboard.neednetwork.listeners.OnActivityInteractionListener;
+import com.android.springboard.neednetwork.managers.NeedManager;
 import com.android.springboard.neednetwork.managers.UserManager;
 import com.android.springboard.neednetwork.models.Need;
 import com.android.springboard.neednetwork.models.User;
@@ -32,7 +34,6 @@ import com.android.springboard.neednetwork.utils.ActivityUtil;
 import com.android.springboard.neednetwork.utils.SharedPrefsUtils;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -47,7 +48,7 @@ import static com.android.springboard.neednetwork.constants.Constants.HEADER_AUT
 import static com.android.springboard.neednetwork.constants.Constants.TAB_CURRENT_NEEDS;
 import static com.android.springboard.neednetwork.constants.Constants.TAB_MY_NEEDS;
 
-public class NeedTabsActivity extends AppCompatActivity implements TabLayout.OnTabSelectedListener, View.OnClickListener {
+public class NeedTabsActivity extends BaseActivity implements TabLayout.OnTabSelectedListener, View.OnClickListener, OnActivityInteractionListener {
 
     private Toolbar mToolbar;
     private TabLayout mTabLayout;
@@ -60,6 +61,7 @@ public class NeedTabsActivity extends AppCompatActivity implements TabLayout.OnT
     private CharSequence mDrawerTitle;
     private CharSequence mTitle;
     private UserManager mUserManager;
+    private NeedManager mNeedManager;
     private MyNeedsListFragment mMyNeedsListFragment;
     private CurrentNeedsListFragment mCurrentNeedsListFragment;
 
@@ -69,62 +71,20 @@ public class NeedTabsActivity extends AppCompatActivity implements TabLayout.OnT
         setContentView(R.layout.activity_need_tabs);
 
         mUserManager = new UserManager(this);
+        mNeedManager = new NeedManager(this);
         initViews();
-
-        String token = FirebaseInstanceId.getInstance().getToken();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
 
         String mobileNumber = SharedPrefsUtils.getStringPreference(this, ActivityConstants.PREF_MOBILE_NUMBER);
         loadNeeds(mobileNumber);
     }
 
-    /*    private void testGetContacts() {
-        ContentResolver cr = getContentResolver();
-        Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
-        if (cur.getCount() > 0) {
-            while (cur.moveToNext()) {
-                String id = cur.getString(cur.getColumnIndex(
-                        ContactsContract.Contacts._ID));
-                String name = cur.getString(cur.getColumnIndex(
-                        ContactsContract.Contacts.DISPLAY_NAME));
-                if (Integer.parseInt(cur.getString(cur.getColumnIndex(
-                        ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
-                    Cursor pCur = cr.query(
-                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                            null,
-                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID +" = ?",
-                            new String[]{id}, null);
-                    while (pCur.moveToNext()) {
-                        int phoneType = pCur.getInt(pCur.getColumnIndex(
-                                ContactsContract.CommonDataKinds.Phone.TYPE));
-                        String phoneNumber = pCur.getString(pCur.getColumnIndex(
-                                ContactsContract.CommonDataKinds.Phone.NUMBER));
-                        switch (phoneType) {
-                            case ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE:
-                                Log.e(name + "(mobile number)", phoneNumber);
-                                break;
-                            case ContactsContract.CommonDataKinds.Phone.TYPE_HOME:
-                                Log.e(name + "(home number)", phoneNumber);
-                                break;
-                            case ContactsContract.CommonDataKinds.Phone.TYPE_WORK:
-                                Log.e(name + "(work number)", phoneNumber);
-                                break;
-                            case ContactsContract.CommonDataKinds.Phone.TYPE_OTHER:
-                                Log.e(name + "(other number)", phoneNumber);
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                    pCur.close();
-                }
-            }
-        }
-    }*/
+    @Override
+    protected void
+    onStart() {
+        super.onStart();
+
+        mMyNeedsListFragment.addNeed();
+    }
 
     private void initViews() {
         mAddNewNeedButton = (FloatingActionButton) findViewById(R.id.add_need_btn);
@@ -204,15 +164,15 @@ public class NeedTabsActivity extends AppCompatActivity implements TabLayout.OnT
         Gson gson = new Gson();
         TypeToken<List<Need>> token = new TypeToken<List<Need>>() {};
         List<Need> needList = gson.fromJson(responseData.toString(), token.getType());
-        NeedNetApplication.setMyNeedList(needList);
         Log.i("shoeb", responseData.toString());
-        mMyNeedsListFragment.loadAdapter();
+        mMyNeedsListFragment.loadAdapter(needList);
     }
 
     private Response.ErrorListener mLoginErrorListener = new Response.ErrorListener() {
         @Override
         public void onErrorResponse(VolleyError error) {
             Log.i("shoeb", "" + error);
+            Toast.makeText(NeedTabsActivity.this, R.string.text_network_error, Toast.LENGTH_LONG).show();
         }
     };
 
@@ -229,6 +189,15 @@ public class NeedTabsActivity extends AppCompatActivity implements TabLayout.OnT
        /* boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
         menu.findItem(R.id.action_websearch).setVisible(!drawerOpen);*/
         return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public void onRecyclerViewScroll(int dx, int dy) {
+        if (dy > 0 && mAddNewNeedButton.getVisibility() == View.VISIBLE) {
+            mAddNewNeedButton.hide();
+        } else if (dy < 0 && mAddNewNeedButton.getVisibility() != View.VISIBLE) {
+            mAddNewNeedButton.show();
+        }
     }
 
 /*    @Override
@@ -282,14 +251,51 @@ public class NeedTabsActivity extends AppCompatActivity implements TabLayout.OnT
         viewPager.setAdapter(adapter);
     }
 
+    private void RequestOthersNeeds() {
+        if (!mCurrentNeedsListFragment.isAdapterInitialized()) {
+            mNeedManager.getCurrentNeeds(mOthersNeedsResponseListener, mOthersNeedsErrorListener);
+        }
+    }
+
+    private Response.Listener mOthersNeedsResponseListener = new Response.Listener<String>() {
+        @Override
+        public void onResponse(String response) {
+            Log.i("shoeb", "" + response);
+            handleOthersNeedsResponse(response);
+
+        }
+    };
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void handleOthersNeedsResponse(String responseData) {
+        Gson gson = new Gson();
+        TypeToken<List<Need>> token = new TypeToken<List<Need>>() {};
+        List<Need> needList = gson.fromJson(responseData, token.getType());
+        Log.i("shoeb", responseData);
+        mCurrentNeedsListFragment.loadAdapter(needList);
+    }
+
+    private Response.ErrorListener mOthersNeedsErrorListener = new Response.ErrorListener() {
+        @Override
+        public void onErrorResponse(VolleyError error) {
+            Log.i("shoeb", "" + error);
+            Toast.makeText(NeedTabsActivity.this, R.string.text_network_error, Toast.LENGTH_LONG).show();
+        }
+    };
+
     @Override
     public void onTabSelected(TabLayout.Tab tab) {
         String tabTitle = tab.getText().toString();
 
         if(tabTitle.equals(TAB_MY_NEEDS)) {
-            mAddNewNeedButton.setVisibility(View.VISIBLE);
+            mAddNewNeedButton.show();
         } else {
-            mAddNewNeedButton.setVisibility(View.INVISIBLE);
+            mAddNewNeedButton.hide();
+            RequestOthersNeeds();
         }
     }
 

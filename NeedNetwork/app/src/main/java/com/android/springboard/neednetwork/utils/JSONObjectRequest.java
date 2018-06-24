@@ -30,6 +30,14 @@ public class JSONObjectRequest extends JsonRequest<JSONObject> {
         this.params = params;
     }
 
+    public JSONObjectRequest(int method, String url, String jsonRequest,
+                             Listener<JSONObject> reponseListener, ErrorListener errorListener) {
+        super(method, url, (jsonRequest == null) ? null : jsonRequest, reponseListener,
+                errorListener);
+        this.listener = reponseListener;
+        this.params = params;
+    }
+
 
     protected Map<String, String> getParams()
             throws com.android.volley.AuthFailureError {

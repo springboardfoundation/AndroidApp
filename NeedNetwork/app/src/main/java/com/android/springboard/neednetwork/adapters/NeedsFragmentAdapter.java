@@ -3,6 +3,7 @@ package com.android.springboard.neednetwork.adapters;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.support.v7.widget.RecyclerView;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -44,7 +45,13 @@ public class NeedsFragmentAdapter extends RecyclerView.Adapter<NeedsFragmentAdap
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mUserList.get(position);
         holder.mView.setTag(holder.mItem);
-        holder.mIdView.setText(holder.mItem.getTitle());
+
+        if(holder.mItem.getTitle().length() > 15) {
+            holder.mIdView.setText(holder.mItem.getTitle().substring(0, 15) + "...");
+        } else {
+            holder.mIdView.setText(holder.mItem.getTitle());
+        }
+
         //holder.mTargetView.setText(mValues.get(position).getTitle());
         holder.mContentView.setText(holder.mItem.getDescription());
 
@@ -63,7 +70,9 @@ public class NeedsFragmentAdapter extends RecyclerView.Adapter<NeedsFragmentAdap
                         : Color.TRANSPARENT);
         ColorDrawable colorDrawable = new ColorDrawable(mSelectedItemsIds.get(position) ? 0x9934B5E4
                 : Color.TRANSPARENT);
-        holder.itemView.setForeground(colorDrawable);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            holder.itemView.setForeground(colorDrawable);
+        }
     }
 
     @Override
@@ -90,6 +99,21 @@ public class NeedsFragmentAdapter extends RecyclerView.Adapter<NeedsFragmentAdap
         public String toString() {
             return super.toString() + " '" + mContentView.getText() + "'";
         }
+    }
+
+    public void updateData(List<Need> needList) {
+        mUserList.clear();
+        mUserList.addAll(needList);
+        mSelectedItemsIds.clear();
+
+        notifyDataSetChanged();
+    }
+
+    public void addData(Need need) {
+        mUserList.add(need);
+        mSelectedItemsIds.clear();
+
+        notifyDataSetChanged();
     }
 
     /***

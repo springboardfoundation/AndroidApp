@@ -19,12 +19,15 @@ import android.widget.Toast;
 
 import com.android.springboard.neednetwork.R;
 import com.android.springboard.neednetwork.activities.ContactPickerActivity;
+import com.android.springboard.neednetwork.application.NeedNetApplication;
 import com.android.springboard.neednetwork.constants.ActivityConstants;
 import com.android.springboard.neednetwork.managers.NeedManager;
 import com.android.springboard.neednetwork.models.Need;
 import com.android.springboard.neednetwork.utils.ActivityUtil;
+import com.android.springboard.neednetwork.utils.Address;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.google.gson.Gson;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
 import com.mobsandgeeks.saripaar.ValidationError;
@@ -68,6 +71,7 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
     private DatePickerDialog mDatePickerDialog;
     private NeedManager mNeedManager;
     private Need mNeed;
+    private List<String> mUsersList = new ArrayList<>();
     private HashSet<Long> mPreSelectedContactIds = new HashSet<>();
 
 
@@ -82,9 +86,9 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
         mValidator = new Validator(this);
         mValidator.setValidationListener(this);
         Calendar calendar = Calendar.getInstance();
-        mDatePickerDialog = new DatePickerDialog(getContext(), mDateSetListener,
+        mDatePickerDialog = new DatePickerDialog(getActivity(), mDateSetListener,
                 calendar.get(Calendar.YEAR) , calendar.get(Calendar.MONTH) , calendar.get(Calendar.DAY_OF_MONTH));
-        mNeedManager = new NeedManager(getContext());
+        mNeedManager = new NeedManager(getActivity());
         Intent intent = getActivity().getIntent();
         mNeed = intent.getParcelableExtra(ActivityConstants.INTENT_EXTRA_NEED);
     }
@@ -131,7 +135,58 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
     }
 
     public void addOrUpdateNeed() {
-        mValidator.validate();
+        if(isAnythingChanged()) {
+            mValidator.validate();
+        } else {
+            getActivity().finish();
+        }
+    }
+
+    private boolean isAnythingChanged() {
+        if(mNeed == null) {
+            return true;
+        }
+
+        try {
+            if(!(mNeed.getTitle() != null && mNeed.getTitle().equals(mTitleEditText.getText().toString()))) {
+                return true;
+            }
+
+            if(!(mNeed.getDescription() != null && mNeed.getDescription().equals(mDescEditText.getText().toString()))) {
+                return true;
+            }
+
+            if(mNeed.getTargetDate() == null) {
+                return true;
+            }
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(Long.valueOf(mNeed.getTargetDate()));
+            final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            if(!dateFormat.format(calendar.getTime()).equals(mTargetDateEditText.getText().toString())) {
+                return true;
+            }
+
+            if(!(mNeed.getGoal() != null && mNeed.getGoal().equals(mGoalEditText.getText().toString()))) {
+                return true;
+            }
+
+            if(!(mNeed.getLocation() != null && mNeed.getLocation().equals(mLocationEditText.getText().toString()))) {
+                return true;
+            }
+
+            if(!mNeed.getUsers().containsAll(mUsersList)) {
+                return true;
+            }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+
+
+
+        return false;
     }
 
     @Override
@@ -171,6 +226,12 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
         @Override
         public void onResponse(Object response) {
             Log.i("shoeb", "" + response);
+            Gson gson = new Gson();
+            Need need = gson.fromJson(response.toString(), Need.class);
+            NeedNetApplication.setNeed(need);
+/*            Intent intent = new Intent();
+            intent.putExtra(ActivityConstants.INTENT_EXTRA_NEED, need);
+            getActivity().setResult(Activity.RESULT_OK, intent);*/
             getActivity().finish();
         }
     };
@@ -179,6 +240,8 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
         @Override
         public void onErrorResponse(VolleyError error) {
             Log.i("shoeb", "" + error);
+            mNeed = null;
+            Toast.makeText(getActivity(), R.string.text_network_error, Toast.LENGTH_LONG).show();
         }
     };
 
@@ -272,17 +335,23 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
 
         List<Contact> contacts = (List<Contact>) data.getSerializableExtra(RESULT_CONTACT_DATA);
 
-        Set<String> users = new HashSet<>();
-        for (Contact contact : contacts) {
-            for (String number : contact.getPhone()) {
-                users.add(number);
+        if (contacts.size() > 0) {
+            Set<String> users = new HashSet<>();
+            for (Contact contact : contacts) {
+                Address address = Address.fromExternal(getActivity(), contact.getPhoneNumber());
+                users.add(address.toString());
+                mPreSelectedContactIds.add(contact.getId());
             }
 
-            mPreSelectedContactIds.add(contact.getId());
-        }
+            if (mNeed == null) {
+                mNeed = new Need();
+            }
 
-        Log.i("shoeb", Arrays.toString(users.toArray()));
-        mNeed.setUsers(new ArrayList<>(users));
+            Log.i("shoeb", Arrays.toString(users.toArray()));
+            mUsersList.clear();
+            mUsersList.addAll(users);
+            mNeed.setUsers(mUsersList);
+        }
     }
 
     public void hideActionButton() {

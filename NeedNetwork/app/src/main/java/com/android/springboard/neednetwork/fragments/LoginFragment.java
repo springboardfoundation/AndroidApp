@@ -1,8 +1,10 @@
 package com.android.springboard.neednetwork.fragments;
 
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.telephony.TelephonyManager;
@@ -12,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 
 import com.android.springboard.neednetwork.R;
+import com.android.springboard.neednetwork.activities.NeedTabsActivity;
 import com.android.springboard.neednetwork.activities.PhoneVerificationActivity;
 import com.android.springboard.neednetwork.application.NeedNetApplication;
 import com.android.springboard.neednetwork.constants.ActivityConstants;
@@ -27,6 +30,8 @@ import java.util.List;
  * A simple {@link Fragment} subclass.
  */
 public class LoginFragment extends Fragment implements View.OnClickListener, Validator.ValidationListener {
+
+    private static final int LOGIN_FRAGMENT_REQUEST_CODE = 201;
 
     private CountryCodePicker mCountryCodePicker;
     @NotEmpty
@@ -98,8 +103,19 @@ public class LoginFragment extends Fragment implements View.OnClickListener, Val
     }
 
     @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == LOGIN_FRAGMENT_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            ActivityUtil.startActivity(this, NeedTabsActivity.class);
+            getActivity().finish();
+        }
+    }
+
+    @Override
     public void onValidationSucceeded() {
-        ActivityUtil.startActivity(getActivity(), PhoneVerificationActivity.class, ActivityConstants.INTENT_EXTRA_MOBILE_NUMBER,
+        ActivityUtil.startActivityForResult(this, PhoneVerificationActivity.class, LOGIN_FRAGMENT_REQUEST_CODE,
+                ActivityConstants.INTENT_EXTRA_MOBILE_NUMBER,
                 mCountryCodePicker.getFullNumberWithPlus());
     }
 

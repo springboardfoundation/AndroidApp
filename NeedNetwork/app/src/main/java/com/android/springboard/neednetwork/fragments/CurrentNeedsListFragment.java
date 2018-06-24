@@ -1,6 +1,7 @@
 package com.android.springboard.neednetwork.fragments;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -10,7 +11,10 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.android.springboard.neednetwork.R;
+import com.android.springboard.neednetwork.activities.OthersNeedActivity;
+import com.android.springboard.neednetwork.constants.ActivityConstants;
 import com.android.springboard.neednetwork.listeners.OnListFragmentInteractionListener;
+import com.android.springboard.neednetwork.models.Need;
 
 /**
  * A fragment representing a list of Items.
@@ -88,6 +92,15 @@ public class CurrentNeedsListFragment extends NeedsListFragment
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    protected void handleOnClick(View view) {
+        Need need = (Need) view.getTag();
+        Intent intent = new Intent();
+        intent.setClass(getContext(), OthersNeedActivity.class);
+        intent.putExtra(ActivityConstants.INTENT_EXTRA_NEED, need);
+        startActivity(intent);
     }
 
 }

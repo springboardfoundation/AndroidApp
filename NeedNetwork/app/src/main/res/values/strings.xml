@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">NeedNetwork</string>
+    <string name="sender_id">229465808406</string>
+    <string name="application_id">1:229465808406:android:38488a994a0e34b6</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -16,6 +18,9 @@
     <string name="mobile_verification_title">Mobile verification</string>
     <string name="menu_item_delete">delete</string>
     <string name="menu_item_share">Share</string>
+
+
+    <string name="text_network_error">Please check your network connection</string>
 
 
     <string-array name="left_menu_titles">
