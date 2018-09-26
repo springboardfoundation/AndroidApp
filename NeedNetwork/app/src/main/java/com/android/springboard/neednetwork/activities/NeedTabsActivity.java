@@ -140,12 +140,14 @@ public class NeedTabsActivity extends BaseActivity implements TabLayout.OnTabSel
         User user = new User();
         user.setMobileNumber(mobileNumber);
         Log.i("shoeb", "test before making rest call" );
+        showProgressDialog(getString(R.string.please_wait));
         mUserManager.login(user, mLoginResponseListener, mLoginErrorListener);
     }
 
     private Response.Listener mLoginResponseListener = new Response.Listener<JSONObject>() {
         @Override
         public void onResponse(JSONObject response) {
+            dismissProgressDialog();
             Log.i("shoeb", "" + response);
             try {
                 JSONObject headers = response.getJSONObject(Constants.RESPONSE_HEADERS);
@@ -172,6 +174,7 @@ public class NeedTabsActivity extends BaseActivity implements TabLayout.OnTabSel
         @Override
         public void onErrorResponse(VolleyError error) {
             Log.i("shoeb", "" + error);
+            dismissProgressDialog();
             Toast.makeText(NeedTabsActivity.this, R.string.text_network_error, Toast.LENGTH_LONG).show();
         }
     };
@@ -253,6 +256,7 @@ public class NeedTabsActivity extends BaseActivity implements TabLayout.OnTabSel
 
     private void RequestOthersNeeds() {
         if (!mCurrentNeedsListFragment.isAdapterInitialized()) {
+            showProgressDialog(getString(R.string.please_wait));
             mNeedManager.getCurrentNeeds(mOthersNeedsResponseListener, mOthersNeedsErrorListener);
         }
     }
@@ -261,6 +265,7 @@ public class NeedTabsActivity extends BaseActivity implements TabLayout.OnTabSel
         @Override
         public void onResponse(String response) {
             Log.i("shoeb", "" + response);
+            dismissProgressDialog();
             handleOthersNeedsResponse(response);
 
         }
@@ -283,6 +288,7 @@ public class NeedTabsActivity extends BaseActivity implements TabLayout.OnTabSel
         @Override
         public void onErrorResponse(VolleyError error) {
             Log.i("shoeb", "" + error);
+            dismissProgressDialog();
             Toast.makeText(NeedTabsActivity.this, R.string.text_network_error, Toast.LENGTH_LONG).show();
         }
     };

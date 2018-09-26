@@ -14,7 +14,7 @@ import android.view.ViewTreeObserver;
 import com.android.springboard.neednetwork.R;
 import com.android.springboard.neednetwork.fragments.NeedFragment;
 
-public class NeedActivity extends AppCompatActivity {
+public class NeedActivity extends BaseActivity {
 
     private NeedFragment mNeedFragment;
 

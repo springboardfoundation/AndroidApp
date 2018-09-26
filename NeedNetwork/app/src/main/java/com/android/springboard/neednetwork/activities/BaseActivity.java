@@ -1,5 +1,6 @@
 package com.android.springboard.neednetwork.activities;
 
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -10,6 +11,8 @@ import com.deltadna.android.sdk.DDNA;
 import com.deltadna.android.sdk.notifications.DDNANotifications;
 
 public class BaseActivity extends AppCompatActivity {
+
+    private ProgressDialog mProgressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,5 +78,25 @@ public class BaseActivity extends AppCompatActivity {
 /*        ((TextView) findViewById(R.id.registration_token)).setText(getString(
                 R.string.registration_token,
                 token));*/
+    }
+
+    public void showProgressDialog(String message) {
+        if (isFinishing()) {
+            return;
+        }
+        if (mProgressDialog == null) {
+            mProgressDialog = new ProgressDialog(this);
+            mProgressDialog.setCancelable(false);
+        }
+        mProgressDialog.setMessage(message);
+        if (!mProgressDialog.isShowing()) {
+            mProgressDialog.show();
+        }
+    }
+
+    public void dismissProgressDialog() {
+        if (!isFinishing() && mProgressDialog != null && mProgressDialog.isShowing()) {
+            mProgressDialog.dismiss();
+        }
     }
 }

@@ -2,6 +2,7 @@ package com.android.springboard.neednetwork.fragments;
 
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Fragment;
 import android.content.Intent;
@@ -18,6 +19,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.android.springboard.neednetwork.R;
+import com.android.springboard.neednetwork.activities.BaseActivity;
 import com.android.springboard.neednetwork.activities.ContactPickerActivity;
 import com.android.springboard.neednetwork.application.NeedNetApplication;
 import com.android.springboard.neednetwork.constants.ActivityConstants;
@@ -87,14 +89,14 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
         mValidator.setValidationListener(this);
         Calendar calendar = Calendar.getInstance();
         mDatePickerDialog = new DatePickerDialog(getActivity(), mDateSetListener,
-                calendar.get(Calendar.YEAR) , calendar.get(Calendar.MONTH) , calendar.get(Calendar.DAY_OF_MONTH));
+                calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
         mNeedManager = new NeedManager(getActivity());
         Intent intent = getActivity().getIntent();
         mNeed = intent.getParcelableExtra(ActivityConstants.INTENT_EXTRA_NEED);
     }
 
     private void populateNeed(Need need) {
-        if( need == null) {
+        if (need == null) {
             return;
         }
 
@@ -106,7 +108,7 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
         calendar.setTimeInMillis(Long.valueOf(need.getTargetDate()));
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         mTargetDateEditText.setText(dateFormat.format(calendar.getTime()));
-        mDatePickerDialog.updateDate(calendar.get(Calendar.YEAR) , calendar.get(Calendar.MONTH) , calendar.get(Calendar.DAY_OF_MONTH));
+        mDatePickerDialog.updateDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
     }
 
     @Override
@@ -135,7 +137,7 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
     }
 
     public void addOrUpdateNeed() {
-        if(isAnythingChanged()) {
+        if (isAnythingChanged()) {
             mValidator.validate();
         } else {
             getActivity().finish();
@@ -143,39 +145,39 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
     }
 
     private boolean isAnythingChanged() {
-        if(mNeed == null) {
+        if (mNeed == null) {
             return true;
         }
 
         try {
-            if(!(mNeed.getTitle() != null && mNeed.getTitle().equals(mTitleEditText.getText().toString()))) {
+            if (!(mNeed.getTitle() != null && mNeed.getTitle().equals(mTitleEditText.getText().toString()))) {
                 return true;
             }
 
-            if(!(mNeed.getDescription() != null && mNeed.getDescription().equals(mDescEditText.getText().toString()))) {
+            if (!(mNeed.getDescription() != null && mNeed.getDescription().equals(mDescEditText.getText().toString()))) {
                 return true;
             }
 
-            if(mNeed.getTargetDate() == null) {
+            if (mNeed.getTargetDate() == null) {
                 return true;
             }
 
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(Long.valueOf(mNeed.getTargetDate()));
             final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            if(!dateFormat.format(calendar.getTime()).equals(mTargetDateEditText.getText().toString())) {
+            if (!dateFormat.format(calendar.getTime()).equals(mTargetDateEditText.getText().toString())) {
                 return true;
             }
 
-            if(!(mNeed.getGoal() != null && mNeed.getGoal().equals(mGoalEditText.getText().toString()))) {
+            if (!(mNeed.getGoal() != null && mNeed.getGoal().equals(mGoalEditText.getText().toString()))) {
                 return true;
             }
 
-            if(!(mNeed.getLocation() != null && mNeed.getLocation().equals(mLocationEditText.getText().toString()))) {
+            if (!(mNeed.getLocation() != null && mNeed.getLocation().equals(mLocationEditText.getText().toString()))) {
                 return true;
             }
 
-            if(!mNeed.getUsers().containsAll(mUsersList)) {
+            if (!mNeed.getUsers().containsAll(mUsersList)) {
                 return true;
             }
         } catch (NullPointerException e) {
@@ -185,13 +187,12 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
         }
 
 
-
         return false;
     }
 
     @Override
     public void onValidationSucceeded() {
-        if(mNeed == null) {
+        if (mNeed == null) {
             mNeed = new Need();
         }
 
@@ -214,7 +215,7 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
         };
         mNeed.setTargetDate(date.toString());
         mNeed.setLocation(mLocationEditText.getText().toString());
-
+        showProgressBar();
         if (mNeed.getId() == null || mNeed.getId().isEmpty()) {
             mNeedManager.createNeed(mNeed, mNeedResponseListener, mNeedErrorListener);
         } else {
@@ -226,6 +227,7 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
         @Override
         public void onResponse(Object response) {
             Log.i("shoeb", "" + response);
+            dismissProgressBar();
             Gson gson = new Gson();
             Need need = gson.fromJson(response.toString(), Need.class);
             NeedNetApplication.setNeed(need);
@@ -240,6 +242,7 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
         @Override
         public void onErrorResponse(VolleyError error) {
             Log.i("shoeb", "" + error);
+            dismissProgressBar();
             mNeed = null;
             Toast.makeText(getActivity(), R.string.text_network_error, Toast.LENGTH_LONG).show();
         }
@@ -254,14 +257,14 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
     public void onClick(View v) {
         int id = v.getId();
 
-        if(id == R.id.add_connections_btn) {
+        if (id == R.id.add_connections_btn) {
             //handleAddConnectionsClick();
             new TedPermission(getActivity())
                     .setPermissionListener(mPermissionlistener)
                     .setDeniedMessage("If you reject permission,you can not use this service\n\nPlease turn on permissions at [Setting] > [Permission]")
                     .setPermissions(Manifest.permission.READ_CONTACTS)
                     .check();
-        } else if(id == R.id.target_date_et && !mDatePickerDialog.isShowing()) {
+        } else if (id == R.id.target_date_et && !mDatePickerDialog.isShowing()) {
             mDatePickerDialog.show();
         }
     }
@@ -306,11 +309,10 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
                         ContactsContract.CommonDataKinds.Email.TYPE_WORK)
 
 
-
                 .putExtra(ContactPickerActivity.EXTRA_CONTACT_SORT_ORDER,
                         ContactSortOrder.AUTOMATIC.name());
 
-        if(!mPreSelectedContactIds.isEmpty()) {
+        if (!mPreSelectedContactIds.isEmpty()) {
             intent.putExtra(ContactPickerActivity.EXTRA_PRESELECTED_CONTACTS,
                     mPreSelectedContactIds);
         }
@@ -320,7 +322,7 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
 
     @Override
     public void onFocusChange(View v, boolean hasFocus) {
-        if(v.getId() == R.id.target_date_et && hasFocus && !mDatePickerDialog.isShowing()) {
+        if (v.getId() == R.id.target_date_et && hasFocus && !mDatePickerDialog.isShowing()) {
             mDatePickerDialog.show();
         }
     }
@@ -329,7 +331,7 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(data == null || data.getSerializableExtra(RESULT_CONTACT_DATA) == null) {
+        if (data == null || data.getSerializableExtra(RESULT_CONTACT_DATA) == null) {
             return;
         }
 
@@ -351,6 +353,22 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
             mUsersList.clear();
             mUsersList.addAll(users);
             mNeed.setUsers(mUsersList);
+        }
+    }
+
+    protected void showProgressBar() {
+        Activity activity = getActivity();
+        if (activity != null &&
+                activity instanceof BaseActivity) {
+            ((BaseActivity) activity).showProgressDialog(getString(R.string.please_wait));
+        }
+    }
+
+    protected void dismissProgressBar() {
+        Activity activity = getActivity();
+        if (activity != null &&
+                activity instanceof BaseActivity) {
+            ((BaseActivity) activity).dismissProgressDialog();
         }
     }
 

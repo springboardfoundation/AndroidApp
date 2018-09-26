@@ -1,5 +1,7 @@
 package com.android.springboard.neednetwork.constants;
 
+import com.android.springboard.neednetwork.BuildConfig;
+
 /**
  * Created by Shouib on 6/3/2017.
  */

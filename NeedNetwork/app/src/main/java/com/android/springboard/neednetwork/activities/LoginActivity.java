@@ -25,7 +25,7 @@ public class LoginActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_login);
 
         String mobileNumber = SharedPrefsUtils.getStringPreference(this, PREF_MOBILE_NUMBER);
         if (mobileNumber != null && !mobileNumber.isEmpty()) {

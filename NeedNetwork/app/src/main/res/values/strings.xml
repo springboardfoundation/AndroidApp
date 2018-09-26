@@ -22,6 +22,8 @@
 
     <string name="text_network_error">Please check your network connection</string>
 
+    <string name="please_wait">Please Wait...</string>
+
 
     <string-array name="left_menu_titles">
         <item>About</item>
