@@ -639,7 +639,7 @@ public class ContactPickerActivity extends AppCompatActivity implements
         protected List<Object> doInBackground(Void... params) {
             AppDataBase appDataBase = AppDataBase.getAppDatabase(ContactPickerActivity.this);
             List<ContactImpl> databaseContacts = appDataBase.contactDao().getAll();
-            if((databaseContacts == null || databaseContacts.isEmpty()) || mRefresh) {
+            if ((databaseContacts == null || databaseContacts.isEmpty()) || mRefresh) {
                 String selection = "";
                 if (mOnlyWithPhoneNumbers) {
                     selection = ContactsContract.Contacts.HAS_PHONE_NUMBER;
@@ -653,19 +653,21 @@ public class ContactPickerActivity extends AppCompatActivity implements
                 readContactDetails(contactDetailsCursor, contactsMap);
 
                 Collection<ContactImpl> contacts = contactsMap.values();
-                for(ContactImpl contact : contacts) {
-                    for(String number : contact.getPhone()) {
+                for (ContactImpl contact : contacts) {
+                    for (String number : contact.getPhone()) {
                         Address address = Address.fromExternal(ContactPickerActivity.this, number);
-                        if(!isPhoneNumberExist(address.toString(), mPhoneNumbersList)) {
+                        if (!isPhoneNumberExist(address.toString(), mPhoneNumbersList)) {
                             mPhoneNumbersList.add(address.toString());
                         }
+                        contact.setPhoneNumber(address.toString());
                     }
                 }
                 Log.i("shoeb", Arrays.toString(mPhoneNumbersList.toArray()));
                 try {
                     JSONArray response = mUserManager.fetchRegisteredUsers(mPhoneNumbersList);
                     Gson gson = new Gson();
-                    Type listType = new TypeToken<List<String>>() {}.getType();
+                    Type listType = new TypeToken<List<String>>() {
+                    }.getType();
                     List<String> registeredUsersList = gson.fromJson(response.toString(), listType);
                     readContacts(registeredUsersList, contacts);
                     saveToDatabase();
@@ -679,7 +681,6 @@ public class ContactPickerActivity extends AppCompatActivity implements
             } else {
                 readContactsFromDatabase(databaseContacts);
             }
-
 
 
             return null;
@@ -731,8 +732,8 @@ public class ContactPickerActivity extends AppCompatActivity implements
     }
 
     private boolean isPhoneNumberExist(String number, List<String> phoneNumbersList) {
-        for(String phone : phoneNumbersList) {
-            if(PhoneNumberUtils.compare(number, phone)) {
+        for (String phone : phoneNumbersList) {
+            if (PhoneNumberUtils.compare(number, phone)) {
                 return true;
             }
         }
@@ -799,47 +800,20 @@ public class ContactPickerActivity extends AppCompatActivity implements
         mContacts.clear();
         mContactsByLookupKey.clear();
         mNrOfSelectedContacts = 0;
-
-        int i = 0;
-        for (String registeredNumber : registeredUsersList) {
-            for (ContactImpl contact : contactsList) {
-/*                for (String number : contact.getPhone()) {
-                    mContacts.add(contact);
-                    mContactsByLookupKey.put(contact.getLookupKey(), contact);
-
+        for (ContactImpl contact : contactsList) {
+            for (String registeredNumber : registeredUsersList) {
+                Address address = Address.fromExternal(ContactPickerActivity.this, registeredNumber);
+                if (PhoneNumberUtils.compare(address.toString(), contact.getPhoneNumber())) {
                     boolean isChecked = mSelectedContactIds.contains(contact.getId());
                     contact.setChecked(isChecked, true);
                     mNrOfSelectedContacts += isChecked ? 1 : 0;
 
                     contact.addOnContactCheckedListener(mContactListener);
-                    Address address = Address.fromExternal(ContactPickerActivity.this, number);
-                    if(PhoneNumberUtils.compare(address.toString(), registeredNumber)) {
-                        contact.setRegistered(true);
-                        break;
-                    }
-                }*/
-
-                Map<Integer, String> map = contact.getPhoneMap();
-                for(int type : map.keySet()) {
-                    ContactImpl newContact = ContactImpl.fromContact(contact, ++i);
-                    String number = map.get(type);
-                    newContact.setType(type);
-                    newContact.setPhoneNumber(number);
-                    mContacts.add(newContact);
-                    //mContactsByLookupKey.put(contact.getLookupKey(), contact);
-
-                    boolean isChecked = mSelectedContactIds.contains(newContact.getId());
-                    newContact.setChecked(isChecked, true);
-                    mNrOfSelectedContacts += isChecked ? 1 : 0;
-
-                    newContact.addOnContactCheckedListener(mContactListener);
-                    Address address = Address.fromExternal(ContactPickerActivity.this, number);
-                    if(PhoneNumberUtils.compare(address.toString(), registeredNumber)) {
-                        newContact.setRegistered(true);
-                        break;
-                    }
+                    contact.setRegistered(true);
+                    break;
                 }
             }
+            mContacts.add(contact);
         }
     }
 
@@ -849,7 +823,7 @@ public class ContactPickerActivity extends AppCompatActivity implements
         mNrOfSelectedContacts = 0;
 
         int i = 0;
-        for(ContactImpl contact : contacts) {
+        for (ContactImpl contact : contacts) {
             mContacts.add(contact);
 
             boolean isChecked = mSelectedContactIds.contains(contact.getId());
