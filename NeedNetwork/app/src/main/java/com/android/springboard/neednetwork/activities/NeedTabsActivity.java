@@ -1,16 +1,14 @@
 package com.android.springboard.neednetwork.activities;
 
 import android.content.Intent;
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.widget.Toolbar;
 import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
@@ -23,6 +21,7 @@ import android.widget.Toast;
 import com.android.springboard.neednetwork.R;
 import com.android.springboard.neednetwork.constants.ActivityConstants;
 import com.android.springboard.neednetwork.constants.Constants;
+import com.android.springboard.neednetwork.databinding.ActivityNeedTabsBinding;
 import com.android.springboard.neednetwork.fragments.CurrentNeedsListFragment;
 import com.android.springboard.neednetwork.fragments.MyNeedsListFragment;
 import com.android.springboard.neednetwork.listeners.OnActivityInteractionListener;
@@ -50,13 +49,8 @@ import static com.android.springboard.neednetwork.constants.Constants.TAB_MY_NEE
 
 public class NeedTabsActivity extends BaseActivity implements TabLayout.OnTabSelectedListener, View.OnClickListener, OnActivityInteractionListener {
 
-    private Toolbar mToolbar;
-    private TabLayout mTabLayout;
-    private ViewPager mViewPager;
-    private FloatingActionButton mAddNewNeedButton;
+
     private String[] mTitles;
-    private ListView mDrawerList;
-    private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDrawerToggle;
     private CharSequence mDrawerTitle;
     private CharSequence mTitle;
@@ -64,18 +58,18 @@ public class NeedTabsActivity extends BaseActivity implements TabLayout.OnTabSel
     private NeedManager mNeedManager;
     private MyNeedsListFragment mMyNeedsListFragment;
     private CurrentNeedsListFragment mCurrentNeedsListFragment;
+    private ActivityNeedTabsBinding mBinding;
+    private boolean mIsNeedOptionShown;
+    private boolean mShouldAnimate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_need_tabs);
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_need_tabs);
 
         mUserManager = new UserManager(this);
         mNeedManager = new NeedManager(this);
         initViews();
-
-        String mobileNumber = SharedPrefsUtils.getStringPreference(this, ActivityConstants.PREF_MOBILE_NUMBER);
-        loadNeeds(mobileNumber);
     }
 
     @Override
@@ -87,33 +81,28 @@ public class NeedTabsActivity extends BaseActivity implements TabLayout.OnTabSel
     }
 
     private void initViews() {
-        mAddNewNeedButton = (FloatingActionButton) findViewById(R.id.add_need_btn);
-        mAddNewNeedButton.setOnClickListener(this);
+        mBinding.addNeedBtn.setOnClickListener(this);
+        mBinding.financialNeed.setOnClickListener(this);
+        mBinding.nonFinancialNeed.setOnClickListener(this);
 
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(mToolbar);
+        setSupportActionBar(mBinding.toolbar);
 
-        mViewPager = (ViewPager) findViewById(R.id.viewpager);
-        setupViewPager(mViewPager);
+        setupViewPager(mBinding.viewpager);
 
-        mTabLayout = (TabLayout) findViewById(R.id.tabs);
-        mTabLayout.addOnTabSelectedListener(this);
-        mTabLayout.setupWithViewPager(mViewPager);
+        mBinding.tabs.addOnTabSelectedListener(this);
+        mBinding.tabs.setupWithViewPager(mBinding.viewpager);
 
         mTitles = getResources().getStringArray(R.array.left_menu_titles);
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
         // Set the adapter for the list view
-        mDrawerList.setAdapter(new ArrayAdapter<String>(this,
+        mBinding.leftDrawer.setAdapter(new ArrayAdapter<String>(this,
 
                 R.layout.drawer_list_item, mTitles));
         // Set the list's click listener
-        mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
+        mBinding.leftDrawer.setOnItemClickListener(new DrawerItemClickListener());
 
         mTitle = mDrawerTitle = getTitle();
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, mToolbar,
+        mDrawerToggle = new ActionBarDrawerToggle(this, mBinding.drawerLayout, mBinding.toolbar,
                 R.string.drawer_open, R.string.drawer_close) {
 
             /** Called when a drawer has settled in a completely closed state. */
@@ -133,7 +122,8 @@ public class NeedTabsActivity extends BaseActivity implements TabLayout.OnTabSel
 
         mDrawerToggle.setDrawerIndicatorEnabled(true);
         // Set the drawer toggle as the DrawerListener
-        mDrawerLayout.addDrawerListener(mDrawerToggle);
+        mBinding.drawerLayout.addDrawerListener(mDrawerToggle);
+        animateAddNeedsButton(true);
     }
 
     private void loadNeeds(String mobileNumber) {
@@ -196,10 +186,10 @@ public class NeedTabsActivity extends BaseActivity implements TabLayout.OnTabSel
 
     @Override
     public void onRecyclerViewScroll(int dx, int dy) {
-        if (dy > 0 && mAddNewNeedButton.getVisibility() == View.VISIBLE) {
-            mAddNewNeedButton.hide();
-        } else if (dy < 0 && mAddNewNeedButton.getVisibility() != View.VISIBLE) {
-            mAddNewNeedButton.show();
+        if (dy > 0 && mBinding.addNeedBtn.getVisibility() == View.VISIBLE) {
+            mBinding.addNeedBtn.hide();
+        } else if (dy < 0 && mBinding.addNeedBtn.getVisibility() != View.VISIBLE) {
+            mBinding.addNeedBtn.show();
         }
     }
 
@@ -233,9 +223,9 @@ public class NeedTabsActivity extends BaseActivity implements TabLayout.OnTabSel
                 .commit();*/
 
         // Highlight the selected item, update the title, and close the drawer
-        mDrawerList.setItemChecked(position, true);
+        mBinding.leftDrawer.setItemChecked(position, true);
         setTitle(mTitles[position]);
-        mDrawerLayout.closeDrawer(mDrawerList);
+        mBinding.drawerLayout.closeDrawer(mBinding.leftDrawer);
     }
 
     @Override
@@ -298,9 +288,14 @@ public class NeedTabsActivity extends BaseActivity implements TabLayout.OnTabSel
         String tabTitle = tab.getText().toString();
 
         if(tabTitle.equals(TAB_MY_NEEDS)) {
-            mAddNewNeedButton.show();
+            mBinding.addNeedBtn.show();
+            animateAddNeedsButton(true);
+            String mobileNumber = SharedPrefsUtils.getStringPreference(this, ActivityConstants.PREF_MOBILE_NUMBER);
+            loadNeeds(mobileNumber);
         } else {
-            mAddNewNeedButton.hide();
+            mBinding.addNeedBtn.setVisibility(View.GONE);
+            animateAddNeedsButton(false);
+            hideNeedOptions();
             RequestOthersNeeds();
         }
     }
@@ -318,12 +313,70 @@ public class NeedTabsActivity extends BaseActivity implements TabLayout.OnTabSel
     @Override
     public void onClick(View v) {
         int id = v.getId();
+        switch (v.getId()) {
 
-        if(id == R.id.add_need_btn) {
-            ActivityUtil.startActivity(this, NeedActivity.class);
+            case  R.id.add_need_btn:
+                if (mIsNeedOptionShown) {
+                    hideNeedOptions();
+                    animateAddNeedsButton(true);
+                } else {
+                    showNeedOptions();
+                    animateAddNeedsButton(false);
+                }
+                break;
+            case R.id.financial_need:
+                addNeed();
+                break;
+            case R.id.non_financial_need:
+                addNeed();
+                break;
         }
     }
 
+    private void animateAddNeedsButton(boolean animate) {
+
+        mShouldAnimate = animate;
+
+        if (!mShouldAnimate) {
+            return;
+        }
+
+        mBinding.addNeedBtn.setScaleX(1f);
+        mBinding.addNeedBtn.setScaleY(1f);
+        mBinding.addAnimator.setScaleX(0.5f);
+        mBinding.addAnimator.setScaleY(0.5f);
+        mBinding.addAnimator.setAlpha(1f);
+        mBinding.addAnimator.animate().alpha(0).scaleX(1.7f).scaleY(1.7f).setDuration(1000);
+        mBinding.addNeedBtn.animate().scaleX(1.2f).scaleY(1.2f).setDuration(1000).withEndAction(new Runnable() {
+            @Override
+            public void run() {
+                mBinding.addNeedBtn.animate().scaleX(1f).scaleY(1f).setDuration(500).withEndAction(new Runnable() {
+                    @Override
+                    public void run() {
+                        animateAddNeedsButton(mShouldAnimate);
+                    }
+                });
+            }
+        });
+
+    }
+
+    private void showNeedOptions() {
+        animateAddNeedsButton(false);
+        mIsNeedOptionShown = true;
+        mBinding.financialNeed.setVisibility(View.VISIBLE);
+        mBinding.nonFinancialNeed.setVisibility(View.VISIBLE);
+    }
+
+    private void hideNeedOptions() {
+        mIsNeedOptionShown = false;
+        mBinding.nonFinancialNeed.setVisibility(View.GONE);
+        mBinding.financialNeed.setVisibility(View.GONE);
+    }
+
+    private void addNeed() {
+        ActivityUtil.startActivity(this, NeedActivity.class);
+    }
 
     class ViewPagerAdapter extends FragmentPagerAdapter {
         private final List<Fragment> mFragmentList = new ArrayList<>();

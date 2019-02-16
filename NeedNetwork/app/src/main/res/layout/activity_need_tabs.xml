@@ -1,56 +1,115 @@
-<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/drawer_layout"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <android.support.design.widget.CoordinatorLayout
+    <android.support.v4.widget.DrawerLayout
+        android:id="@+id/drawer_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <android.support.design.widget.AppBarLayout
+        <android.support.design.widget.CoordinatorLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+            android:layout_height="match_parent">
 
-            <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="?attr/colorPrimary"
-                app:layout_scrollFlags="scroll|enterAlways"
-                app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
-
-            <android.support.design.widget.TabLayout
-                android:id="@+id/tabs"
+            <android.support.design.widget.AppBarLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:tabGravity="fill"
-                app:tabMode="fixed" />
-        </android.support.design.widget.AppBarLayout>
+                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
-        <android.support.v4.view.ViewPager
-            android:id="@+id/viewpager"
-            android:layout_width="match_parent"
+                <android.support.v7.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    android:background="?attr/colorPrimary"
+                    app:layout_scrollFlags="scroll|enterAlways"
+                    app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+                <android.support.design.widget.TabLayout
+                    android:id="@+id/tabs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:tabGravity="fill"
+                    app:tabMode="fixed" />
+            </android.support.design.widget.AppBarLayout>
+
+            <android.support.v4.view.ViewPager
+                android:id="@+id/viewpager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:orientation="vertical">
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/financial_need"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginLeft="16dp"
+                    android:layout_marginRight="16dp"
+                    android:layout_marginTop="15dp"
+                    android:src="@drawable/ic_financial_need"
+                    android:tint="@android:color/white"
+                    android:visibility="gone"
+                    app:fabSize="normal" />
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/non_financial_need"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="16dp"
+                    android:layout_marginRight="16dp"
+                    android:layout_marginTop="5dp"
+                    android:src="@drawable/ic_non_financial"
+                    android:tint="@android:color/white"
+                    android:visibility="gone"
+                    app:fabSize="normal" />
+
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <android.support.design.widget.FloatingActionButton
+                        android:id="@+id/add_need_btn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|end"
+                        android:layout_marginBottom="25dp"
+                        android:layout_marginLeft="16dp"
+                        android:layout_marginRight="16dp"
+                        android:layout_marginTop="5dp"
+                        android:src="@drawable/ic_add_button"
+                        app:fabSize="normal" />
+
+                    <android.support.design.widget.FloatingActionButton
+                        android:id="@+id/addAnimator"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|end"
+                        android:layout_marginBottom="25dp"
+                        android:layout_marginLeft="16dp"
+                        android:layout_marginRight="16dp"
+                        android:layout_marginTop="15dp"
+                        android:alpha="0"
+                        android:src="@drawable/ic_add_button"
+                        app:fabSize="normal" />
+                </FrameLayout>
+            </LinearLayout>
+        </android.support.design.widget.CoordinatorLayout>
+
+        <ListView
+            android:id="@+id/left_drawer"
+            android:layout_width="240dp"
             android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+            android:layout_gravity="start"
+            android:background="@android:color/white"
+            android:choiceMode="singleChoice"
+            android:divider="@android:color/transparent"
+            android:dividerHeight="0dp"
+            android:visibility="gone" />
 
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/add_need_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="16dp"
-            android:src="@drawable/ic_add_white_24dp" />
-    </android.support.design.widget.CoordinatorLayout>
-
-    <ListView android:id="@+id/left_drawer"
-        android:layout_width="240dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:choiceMode="singleChoice"
-        android:divider="@android:color/transparent"
-        android:dividerHeight="0dp"
-        android:background="@android:color/white"/>
-
-</android.support.v4.widget.DrawerLayout>
+    </android.support.v4.widget.DrawerLayout>
+</layout>
