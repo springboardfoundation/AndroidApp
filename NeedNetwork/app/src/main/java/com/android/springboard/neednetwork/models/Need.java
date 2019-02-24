@@ -22,6 +22,8 @@ public class Need implements Parcelable {
     private String createdBy;
     private List<String> users;
     private List<String> otherUsers;
+    private String needType;
+    private String targetAmount;
 
     public String getId() {
         return id;
@@ -92,6 +94,21 @@ public class Need implements Parcelable {
         this.otherUsers = otherUsers;
     }
 
+    public String getNeedType() {
+        return needType;
+    }
+
+    public void setNeedType(String needType) {
+        this.needType = needType;
+    }
+
+    public String getTargetAmount() {
+        return targetAmount;
+    }
+
+    public void setTargetAmount(String targetAmount) {
+        this.targetAmount = targetAmount;
+    }
 
     @Override
     public int describeContents() {
@@ -108,6 +125,8 @@ public class Need implements Parcelable {
         dest.writeStringList(this.users);
         dest.writeStringList(this.otherUsers);
         dest.writeString(this.title);
+        dest.writeString(this.targetAmount);
+        dest.writeString(this.needType);
     }
 
     protected Need(Parcel in) {
@@ -119,6 +138,8 @@ public class Need implements Parcelable {
         this.users = in.createStringArrayList();
         this.otherUsers = in.createStringArrayList();
         this.title = in.readString();
+        this.targetAmount = in.readString();
+        this.needType = in.readString();
     }
 
     public static final Parcelable.Creator<Need> CREATOR = new Parcelable.Creator<Need>() {

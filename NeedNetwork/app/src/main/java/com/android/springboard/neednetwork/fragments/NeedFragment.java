@@ -64,6 +64,8 @@ public abstract class NeedFragment extends Fragment implements Validator.Validat
     private EditText mDescEditText;
     @NotEmpty
     private EditText mTargetDateEditText;
+    @NotEmpty
+    protected EditText mTargetAmountEditText;
     private EditText mLocationEditText;
     private FloatingActionButton mFloatingActionButton;
 
@@ -76,7 +78,8 @@ public abstract class NeedFragment extends Fragment implements Validator.Validat
 
 
     protected abstract int getLayoutId();
-    protected abstract int initMyViews(View view);
+    protected abstract void initMyViews(View view);
+    protected abstract void populateMyNeed(Need need);
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -105,6 +108,8 @@ public abstract class NeedFragment extends Fragment implements Validator.Validat
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         mTargetDateEditText.setText(dateFormat.format(calendar.getTime()));
         mDatePickerDialog.updateDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+
+        populateMyNeed(need);
     }
 
     @Override
@@ -169,6 +174,11 @@ public abstract class NeedFragment extends Fragment implements Validator.Validat
                 return true;
             }
 
+            if(!(mTargetDateEditText != null && mNeed.getTargetAmount() != null
+                    && mNeed.getTargetAmount().equals(mTargetDateEditText.getText().toString()))) {
+                return true;
+            }
+
             if (!mNeed.getUsers().containsAll(mUsersList)) {
                 return true;
             }
@@ -206,6 +216,11 @@ public abstract class NeedFragment extends Fragment implements Validator.Validat
         };
         mNeed.setTargetDate(date.toString());
         mNeed.setLocation(mLocationEditText.getText().toString());
+
+        if(mTargetAmountEditText != null) {
+            mNeed.setTargetAmount(mTargetAmountEditText.getText().toString());
+        }
+
         showProgressBar();
         if (mNeed.getId() == null || mNeed.getId().isEmpty()) {
             mNeedManager.createNeed(mNeed, mNeedResponseListener, mNeedErrorListener);

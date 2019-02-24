@@ -23,6 +23,11 @@
     <string name="text_network_error">Please check your network connection</string>
 
     <string name="please_wait">Please Wait...</string>
+    <string name="text_target_amount">Target amount</string>
+    <string name="text_description">Description</string>
+    <string name="text_location">Location</string>
+    <string name="text_target_date">Target date</string>
+    <string name="text_title">Title</string>
 
     <string-array name="left_menu_titles">
         <item>Needs</item>

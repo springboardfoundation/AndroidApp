@@ -19,10 +19,13 @@ import com.google.firebase.messaging.RemoteMessage;
 import com.onegravity.contactpicker.util.Util;
 
 import java.util.Map;
+import java.util.Random;
 
 public class NeedNetFirebaseInstanceIdService extends FirebaseMessagingService {
 
     private static final String TAG = NeedNetFirebaseInstanceIdService.class.getSimpleName();
+
+    private Random mRandom = new Random();
 
     public NeedNetFirebaseInstanceIdService() {
         Log.i(TAG, "NeedNetFirebaseInstanceIdService constructor called");
@@ -91,7 +94,8 @@ public class NeedNetFirebaseInstanceIdService extends FirebaseMessagingService {
             notificationManager.createNotificationChannel(channel);
         }
 
-        notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+        int id = mRandom.nextInt(9999 - 1000) + 1000;
+        notificationManager.notify(id /* ID of notification */, notificationBuilder.build());
     }
 
     @Override
