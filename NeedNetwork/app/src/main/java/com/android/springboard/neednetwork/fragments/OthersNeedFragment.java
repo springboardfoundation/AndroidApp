@@ -48,7 +48,6 @@ public class OthersNeedFragment extends Fragment implements View.OnClickListener
     private static final int REQUEST_CONTACT = 0;
     private TextView mTitleTv;
     private TextView mDescTv;
-    private TextView mGoalTv;
     private TextView mTargetDateTv;
     private TextView mLocationTv;
     private FloatingActionButton mFloatingActionButton;
@@ -83,7 +82,6 @@ public class OthersNeedFragment extends Fragment implements View.OnClickListener
     private void initViews(View view) {
         mTitleTv = (TextView) view.findViewById(R.id.title_et);
         mDescTv = (TextView) view.findViewById(R.id.description_et);
-        mGoalTv = (TextView) view.findViewById(R.id.goal_et);
         mTargetDateTv = (TextView) view.findViewById(R.id.target_date_et);
         mLocationTv = (TextView) view.findViewById(R.id.location_et);
 
@@ -100,7 +98,6 @@ public class OthersNeedFragment extends Fragment implements View.OnClickListener
 
         mTitleTv.setText(need.getTitle());
         mDescTv.setText(need.getDescription());
-        mGoalTv.setText(need.getGoal());
         mLocationTv.setText(need.getLocation());
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(Long.valueOf(need.getTargetDate()));

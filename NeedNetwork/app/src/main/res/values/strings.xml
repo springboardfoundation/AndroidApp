@@ -24,8 +24,13 @@
 
     <string name="please_wait">Please Wait...</string>
 
-
     <string-array name="left_menu_titles">
+        <item>Needs</item>
+        <item>Closed needs</item>
+        <item>Trash</item>
+        <item>My responses</item>
+        <item>Terms and conditions</item>
+        <item>User guide</item>
         <item>About</item>
     </string-array>
 </resources>

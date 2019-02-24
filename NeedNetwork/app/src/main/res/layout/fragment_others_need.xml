@@ -84,6 +84,7 @@
                 android:imeOptions="actionNext"
                 android:textStyle="bold"
                 android:inputType="text"
+                android:visibility="gone"
                 android:textSize="22sp"
                 android:text="Goal"/>
 
@@ -95,6 +96,7 @@
                 android:nextFocusDown="@+id/target_date_et"
                 android:imeOptions="actionNext"
                 android:inputType="text"
+                android:visibility="gone"
                 android:textSize="18sp"
                 android:hint="Goal"/>
 

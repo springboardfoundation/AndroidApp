@@ -2,7 +2,6 @@ package com.android.springboard.neednetwork.fragments;
 
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Fragment;
 import android.content.Intent;
@@ -19,7 +18,6 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.android.springboard.neednetwork.R;
-import com.android.springboard.neednetwork.activities.BaseActivity;
 import com.android.springboard.neednetwork.activities.ContactPickerActivity;
 import com.android.springboard.neednetwork.application.NeedNetApplication;
 import com.android.springboard.neednetwork.constants.ActivityConstants;
@@ -54,7 +52,7 @@ import static com.android.springboard.neednetwork.activities.ContactPickerActivi
 /**
  * A simple {@link Fragment} subclass.
  */
-public class NeedFragment extends Fragment implements Validator.ValidationListener, View.OnClickListener, View.OnFocusChangeListener {
+public abstract class NeedFragment extends Fragment implements Validator.ValidationListener, View.OnClickListener, View.OnFocusChangeListener {
 
     private static final int REQUEST_CONTACT = 0;
 
@@ -63,23 +61,20 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
     @NotEmpty
     private EditText mDescEditText;
     @NotEmpty
-    private EditText mGoalEditText;
-    @NotEmpty
     private EditText mTargetDateEditText;
     private EditText mLocationEditText;
     private FloatingActionButton mFloatingActionButton;
 
-    private Validator mValidator;
-    private DatePickerDialog mDatePickerDialog;
-    private NeedManager mNeedManager;
-    private Need mNeed;
-    private List<String> mUsersList = new ArrayList<>();
-    private HashSet<Long> mPreSelectedContactIds = new HashSet<>();
+    protected Validator mValidator;
+    protected DatePickerDialog mDatePickerDialog;
+    protected NeedManager mNeedManager;
+    protected Need mNeed;
+    protected List<String> mUsersList = new ArrayList<>();
+    protected HashSet<Long> mPreSelectedContactIds = new HashSet<>();
 
 
-    public NeedFragment() {
-        // Required empty public constructor
-    }
+    protected abstract int getLayoutId();
+    protected abstract int initMyViews(View view);
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -102,7 +97,6 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
 
         mTitleEditText.setText(need.getTitle());
         mDescEditText.setText(need.getDescription());
-        mGoalEditText.setText(need.getGoal());
         mLocationEditText.setText(need.getLocation());
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(Long.valueOf(need.getTargetDate()));
@@ -115,7 +109,7 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_need, container, false);
+        View view = inflater.inflate(getLayoutId(), container, false);
         initViews(view);
         return view;
     }
@@ -123,7 +117,6 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
     private void initViews(View view) {
         mTitleEditText = (EditText) view.findViewById(R.id.title_et);
         mDescEditText = (EditText) view.findViewById(R.id.description_et);
-        mGoalEditText = (EditText) view.findViewById(R.id.goal_et);
         mTargetDateEditText = (EditText) view.findViewById(R.id.target_date_et);
         mTargetDateEditText.setOnClickListener(this);
         mTargetDateEditText.setOnFocusChangeListener(this);
@@ -133,6 +126,7 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
         mFloatingActionButton = (FloatingActionButton) view.findViewById(R.id.add_connections_btn);
         mFloatingActionButton.setOnClickListener(this);
 
+        initMyViews(view);
         populateNeed(mNeed);
     }
 
@@ -169,11 +163,7 @@ public class NeedFragment extends Fragment implements Validator.ValidationListen
                 return true;
             }
 
-            if (!(mNeed.getGoal() != null && mNeed.getGoal().equals(mGoalEditText.getText().toString()))) {
-                return true;
-            }
-
-            if (!(mNeed.getLocation() != null && mNeed.getLocation().equals(mLocationEditText.getText().toString()))) {
+            if(!(mNeed.getLocation() != null && mNeed.getLocation().equals(mLocationEditText.getText().toString()))) {
                 return true;
             }
 

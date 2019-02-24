@@ -6,11 +6,11 @@
     android:layout_height="match_parent"
     tools:context="com.android.springboard.neednetwork.activities.NeedActivity">
 
-    <fragment
+<!--    <fragment
         android:id="@+id/add_need_fragment"
-        android:name="com.android.springboard.neednetwork.fragments.NeedFragment"
+        android:name="com.android.springboard.neednetwork.fragments.NonFinancialNeedFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent" />-->
 
 
 </FrameLayout>

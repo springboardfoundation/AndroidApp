@@ -43,9 +43,12 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.springboard.neednetwork.constants.ActivityConstants.INTENT_EXTRA_NEED_TYPE;
 import static com.android.springboard.neednetwork.constants.Constants.HEADER_AUTHORIZATION;
 import static com.android.springboard.neednetwork.constants.Constants.TAB_CURRENT_NEEDS;
 import static com.android.springboard.neednetwork.constants.Constants.TAB_MY_NEEDS;
+import static com.android.springboard.neednetwork.constants.NeedConstants.FINANCIAL_NEED;
+import static com.android.springboard.neednetwork.constants.NeedConstants.NON_FINANCIAL_NEED;
 
 public class NeedTabsActivity extends BaseActivity implements TabLayout.OnTabSelectedListener, View.OnClickListener, OnActivityInteractionListener {
 
@@ -325,10 +328,10 @@ public class NeedTabsActivity extends BaseActivity implements TabLayout.OnTabSel
                 }
                 break;
             case R.id.financial_need:
-                addNeed();
+                addNeed(FINANCIAL_NEED);
                 break;
             case R.id.non_financial_need:
-                addNeed();
+                addNeed(NON_FINANCIAL_NEED);
                 break;
         }
     }
@@ -374,8 +377,8 @@ public class NeedTabsActivity extends BaseActivity implements TabLayout.OnTabSel
         mBinding.financialNeed.setVisibility(View.GONE);
     }
 
-    private void addNeed() {
-        ActivityUtil.startActivity(this, NeedActivity.class);
+    private void addNeed(int needType) {
+        ActivityUtil.startActivity(this, NeedActivity.class, INTENT_EXTRA_NEED_TYPE, needType);
     }
 
     class ViewPagerAdapter extends FragmentPagerAdapter {

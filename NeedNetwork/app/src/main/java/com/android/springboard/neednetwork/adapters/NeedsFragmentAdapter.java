@@ -15,6 +15,7 @@ import com.android.springboard.neednetwork.R;
 import com.android.springboard.neednetwork.listeners.OnListFragmentInteractionListener;
 import com.android.springboard.neednetwork.models.Need;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 /**
@@ -27,6 +28,7 @@ public class NeedsFragmentAdapter extends RecyclerView.Adapter<NeedsFragmentAdap
     private Context mContext;
     private List<Need> mUserList;
     private SparseBooleanArray mSelectedItemsIds;
+    private SimpleDateFormat mDateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
     public NeedsFragmentAdapter(Context context, List<Need> userList) {
         mContext = context;
@@ -52,7 +54,9 @@ public class NeedsFragmentAdapter extends RecyclerView.Adapter<NeedsFragmentAdap
             holder.mIdView.setText(holder.mItem.getTitle());
         }
 
-        //holder.mTargetView.setText(mValues.get(position).getTitle());
+        long targetDate = Long.valueOf(holder.mItem.getTargetDate());
+        String formattedDate = mDateFormat.format(targetDate);
+        holder.mTargetView.setText(formattedDate);
         holder.mContentView.setText(holder.mItem.getDescription());
 
 /*        holder.mView.setOnClickListener(new View.OnClickListener() {

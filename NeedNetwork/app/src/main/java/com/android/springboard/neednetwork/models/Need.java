@@ -22,7 +22,6 @@ public class Need implements Parcelable {
     private String createdBy;
     private List<String> users;
     private List<String> otherUsers;
-    private String goal;
 
     public String getId() {
         return id;
@@ -93,14 +92,6 @@ public class Need implements Parcelable {
         this.otherUsers = otherUsers;
     }
 
-    public String getGoal() {
-        return goal;
-    }
-
-    public void setGoal(String goal) {
-        this.goal = goal;
-    }
-
 
     @Override
     public int describeContents() {
@@ -116,7 +107,6 @@ public class Need implements Parcelable {
         dest.writeString(this.createdBy);
         dest.writeStringList(this.users);
         dest.writeStringList(this.otherUsers);
-        dest.writeString(this.goal);
         dest.writeString(this.title);
     }
 
@@ -128,7 +118,6 @@ public class Need implements Parcelable {
         this.createdBy = in.readString();
         this.users = in.createStringArrayList();
         this.otherUsers = in.createStringArrayList();
-        this.goal = in.readString();
         this.title = in.readString();
     }
 

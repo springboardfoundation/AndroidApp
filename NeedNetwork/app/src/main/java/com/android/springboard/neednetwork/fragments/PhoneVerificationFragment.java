@@ -4,6 +4,7 @@ package com.android.springboard.neednetwork.fragments;
 import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,7 +23,10 @@ import com.android.springboard.neednetwork.utils.SharedPrefsUtils;
 import com.android.volley.ParseError;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.deltadna.android.sdk.DDNA;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 import com.mobsandgeeks.saripaar.ValidationError;
 import com.mobsandgeeks.saripaar.Validator;
 import com.mobsandgeeks.saripaar.annotation.NotEmpty;
@@ -67,13 +71,29 @@ public class PhoneVerificationFragment extends Fragment implements Validator.Val
         return view;
     }
 
-    private void registerUser(String mobileNumber) {
-        String deviceId = DDNA.instance().getRegistrationId();
-        User user = new User();
-        user.setMobileNumber(mobileNumber);
-        user.setUsername(mobileNumber);
-        user.setDeviceID(deviceId);
-        mUserManager.registerUser(user, mRegisterResponseListener, mRegisterErrorListener);
+    private void registerUser(final String mobileNumber) {
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        if (!task.isSuccessful()) {
+                            //Log.w(TAG, "getInstanceId failed", task.getException());
+                            return;
+                        }
+
+                        // Get new Instance ID token
+                        String deviceId = task.getResult().getToken();
+                        User user = new User();
+                        user.setMobileNumber(mobileNumber);
+                        user.setUsername(mobileNumber);
+                        user.setDeviceID(deviceId);
+                        mUserManager.registerUser(user, mRegisterResponseListener, mRegisterErrorListener);
+                        // Log and toast
+                        //String msg = getString(R.string.msg_token_fmt, token);
+                        //Log.d(TAG, msg);
+                        //Toast.makeText(getActivity(), token, Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private Response.Listener mRegisterResponseListener = new Response.Listener() {
