@@ -36,10 +36,14 @@ public class ActivityUtil {
         currentFragment.startActivityForResult(intent, requestCode);
     }
 
-    public static void startActivity(Activity currentActivity, Class<?> klass, String keyExtra, String valueExtra) {
+    public static void startActivity(Activity currentActivity, Class<?> klass, String keyExtra, Object valueExtra) {
         Intent intent = new Intent();
         intent.setClass(currentActivity, klass);
-        intent.putExtra(keyExtra, valueExtra);
+        if (valueExtra instanceof String) {
+            intent.putExtra(keyExtra, (String) valueExtra);
+        } else if (valueExtra instanceof Integer) {
+            intent.putExtra(keyExtra, (int) valueExtra);
+        }
         currentActivity.startActivity(intent);
     }
 

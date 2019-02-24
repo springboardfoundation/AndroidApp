@@ -2,6 +2,7 @@ package com.android.springboard.neednetwork.fragments;
 
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Fragment;
 import android.content.Intent;
@@ -18,6 +19,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.android.springboard.neednetwork.R;
+import com.android.springboard.neednetwork.activities.BaseActivity;
 import com.android.springboard.neednetwork.activities.ContactPickerActivity;
 import com.android.springboard.neednetwork.application.NeedNetApplication;
 import com.android.springboard.neednetwork.constants.ActivityConstants;
@@ -188,7 +190,6 @@ public abstract class NeedFragment extends Fragment implements Validator.Validat
 
         mNeed.setTitle(mTitleEditText.getText().toString());
         mNeed.setDescription(mDescEditText.getText().toString());
-        mNeed.setGoal(mGoalEditText.getText().toString());
         DatePicker datePicker = mDatePickerDialog.getDatePicker();
         int year = datePicker.getYear();
         int month = datePicker.getMonth();
